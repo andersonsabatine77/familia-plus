@@ -73,17 +73,19 @@ jobs:
           with open("android/local.properties", "w") as f:
               f.write(f"sdk.dir={sdk}\n")
 
-          # Diagnóstico
+          # Patch app/build.gradle: substituir "node" pelo caminho absoluto
+          # O subprocess do JVM não herda PATH do GitHub Actions, então node não é encontrado
+          import subprocess
+          node_path = subprocess.run(["which", "node"], capture_output=True, text=True).stdout.strip()
+          print(f"node path: {node_path}")
+          with open("android/app/build.gradle", "r") as f:
+              app_gradle = f.read()
+          app_gradle = app_gradle.replace('"node"', f'"{node_path}"')
+          with open("android/app/build.gradle", "w") as f:
+              f.write(app_gradle)
+
           print("=== gradle-wrapper.properties ===")
           print(open(wrapper_path).read())
-          print("=== build.gradle top ===")
-          print("\n".join(open("android/build.gradle").read().splitlines()[:15]))
-          print("=== local.properties ===")
-          print(open("android/local.properties").read())
-          print("=== app/build.gradle lines 10-20 ===")
-          lines = open("android/app/build.gradle").read().splitlines()
-          for i, l in enumerate(lines[9:20], start=10):
-              print(f"{i}: {l}")
           PYEOF
 
       - name: Make gradlew executable
