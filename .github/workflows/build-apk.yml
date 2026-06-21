@@ -29,6 +29,27 @@ jobs:
       - name: Prebuild Android
         run: npx expo prebuild --platform android --clean --non-interactive
 
+      - name: Patch RN gradle plugin to skip Kotlin metadata version check
+        run: |
+          # Gradle 9.3.1 uses Kotlin 2.2 internally; RN gradle plugin uses Kotlin 1.9.25
+          # The 1.9.25 compiler can't read 2.2 metadata → add -Xskip-metadata-version-check
+          python3 - << 'PYEOF'
+          import os, glob
+          flag = '"-Xskip-metadata-version-check"'
+          target = 'node_modules/@react-native/gradle-plugin'
+          for path in glob.glob(f'{target}/**/build.gradle.kts', recursive=True):
+              with open(path) as f:
+                  content = f.read()
+              if 'Xskip-metadata-version-check' not in content and 'kotlinOptions' in content:
+                  content = content.replace(
+                      'allWarningsAsErrors =',
+                      f'freeCompilerArgs = listOf({flag})\n      allWarningsAsErrors ='
+                  )
+                  with open(path, 'w') as f:
+                      f.write(content)
+                  print(f'Patched: {path}')
+          PYEOF
+
       - name: Patch kotlinVersion in build.gradle
         run: |
           sed -i 's/buildscript {/buildscript {\n  ext {\n    kotlinVersion = "2.1.20"\n    kspVersion = "2.1.20-2.0.1"\n  }/' android/build.gradle
@@ -40,28 +61,15 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build APK (with full log)
-        run: |
-          cd android
-          ./gradlew assembleDebug --no-daemon --info --stacktrace 2>&1 | tee /tmp/gradle-full.log || true
-          echo "=== ERRORS ==="
-          grep -E "^e:|error:|Compilation error|What went wrong|compileKotlin FAILED" /tmp/gradle-full.log | head -40
+      - name: Build APK
+        run: cd android && ./gradlew assembleDebug --no-daemon
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
-      - name: Upload build log
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: gradle-build-log
-          path: /tmp/gradle-full.log
-          retention-days: 3
-
-      - name: Upload APK if exists
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: familia-plus-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
-          if-no-files-found: ignore
