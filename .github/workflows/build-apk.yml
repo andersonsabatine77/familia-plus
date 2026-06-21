@@ -26,8 +26,13 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Patch RN gradle plugin Kotlin version to 2.1.20
-        run: sed -i 's/kotlin = "1.9.25"/kotlin = "2.1.20"/' node_modules/@react-native/gradle-plugin/gradle/libs.versions.toml
+      - name: Prebuild Android
+        run: npx expo prebuild --platform android --clean --non-interactive
+
+      - name: Patch kotlinVersion in build.gradle
+        run: |
+          sed -i 's/buildscript {/buildscript {\n  ext {\n    kotlinVersion = "2.1.20"\n    kspVersion = "2.1.20-2.0.1"\n  }/' android/build.gradle
+          head -10 android/build.gradle
 
       - name: Create local.properties
         run: echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
@@ -35,15 +40,28 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build APK
-        run: cd android && ./gradlew assembleDebug --no-daemon
+      - name: Build APK (with full log)
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --info --stacktrace 2>&1 | tee /tmp/gradle-full.log || true
+          echo "=== ERRORS ==="
+          grep -E "^e:|error:|Compilation error|What went wrong|compileKotlin FAILED" /tmp/gradle-full.log | head -40
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
-      - name: Upload APK
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gradle-build-log
+          path: /tmp/gradle-full.log
+          retention-days: 3
+
+      - name: Upload APK if exists
         uses: actions/upload-artifact@v4
         with:
           name: familia-plus-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+          if-no-files-found: ignore
