@@ -14,7 +14,6 @@ react {
     hermesCommand = "$projectRoot/node_modules/react-native/sdks/hermesc/%OS-BIN%/hermesc"
     codegenDir = new File("$projectRoot/node_modules/@react-native/codegen")
 
-    enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
     cliFile = new File("$projectRoot/node_modules/@expo/cli/build/src/bin/cli.js")
     bundleCommand = "export:embed"
 
