@@ -31,8 +31,8 @@ jobs:
 
       - name: Patch android configs
         run: |
-          # Downgrade Gradle para 8.10.2 (compatível com Kotlin 1.9)
-          sed -i 's|gradle-9.3.1-bin.zip|gradle-8.10.2-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
+          # Usar Gradle 8.13 (compatível com Expo SDK 56 + Kotlin 1.9)
+          sed -i 's|gradle-9.3.1-bin.zip|gradle-8.13-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
           # Desabilitar new arch e limitar arquitetura
           sed -i 's/newArchEnabled=true/newArchEnabled=false/' android/gradle.properties
           sed -i 's/reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/' android/gradle.properties
