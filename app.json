@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Família+",
+    "slug": "familia-plus",
+    "owner": "andersonsabatine",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
+    "android": {
+      "package": "com.familiaplus.app",
+      "permissions": [
+        "NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#6C63FF",
+          "sounds": []
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b43a3f89-de92-4c58-904d-ffda9da8b09b"
+      }
+    }
+  }
+}

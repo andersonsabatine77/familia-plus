@@ -1,0 +1,14 @@
+# Ignorar node_modules (EAS instala as dependências na nuvem)
+node_modules/
+
+# Ignorar arquivos de build local
+android/
+ios/
+.expo/
+
+# Arquivos desnecessários
+*.log
+*.png
+*.jpg
+*.jpeg
+.git/
