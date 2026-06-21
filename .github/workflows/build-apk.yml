@@ -31,14 +31,50 @@ jobs:
 
       - name: Patch android configs
         run: |
-          # Injetar kotlinVersion 2.1.20 (exigido pelo Expo SDK 56)
-          sed -i 's/buildscript {/buildscript {\n  ext {\n    kotlinVersion = "2.1.20"\n  }/' android/build.gradle
+          python3 - << 'PYEOF'
+          import os
+
+          # Forçar Gradle 8.13
+          wrapper_path = "android/gradle/wrapper/gradle-wrapper.properties"
+          wrapper_content = (
+              "distributionBase=GRADLE_USER_HOME\n"
+              "distributionPath=wrapper/dists\n"
+              "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.13-bin.zip\n"
+              "networkTimeout=10000\n"
+              "validateDistributionUrl=true\n"
+              "zipStoreBase=GRADLE_USER_HOME\n"
+              "zipStorePath=wrapper/dists\n"
+          )
+          with open(wrapper_path, "w") as f:
+              f.write(wrapper_content)
+
+          # Injetar kotlinVersion 2.1.20 no build.gradle
+          with open("android/build.gradle", "r") as f:
+              content = f.read()
+          if "kotlinVersion" not in content:
+              content = content.replace(
+                  "buildscript {",
+                  'buildscript {\n  ext {\n    kotlinVersion = "2.1.20"\n  }',
+                  1
+              )
+              with open("android/build.gradle", "w") as f:
+                  f.write(content)
+
           # Desabilitar new arch e limitar arquitetura
-          sed -i 's/newArchEnabled=true/newArchEnabled=false/' android/gradle.properties
-          sed -i 's/reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/' android/gradle.properties
-          # Confirmar
-          head -10 android/build.gradle
-          grep -E "newArch|Architecture" android/gradle.properties
+          gp_path = "android/gradle.properties"
+          with open(gp_path, "r") as f:
+              gp = f.read()
+          gp = gp.replace("newArchEnabled=true", "newArchEnabled=false")
+          import re
+          gp = re.sub(r"reactNativeArchitectures=.*", "reactNativeArchitectures=arm64-v8a", gp)
+          with open(gp_path, "w") as f:
+              f.write(gp)
+
+          print("=== gradle-wrapper.properties ===")
+          print(open(wrapper_path).read())
+          print("=== build.gradle (12 linhas) ===")
+          print("\n".join(open("android/build.gradle").read().splitlines()[:12]))
+          PYEOF
 
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
