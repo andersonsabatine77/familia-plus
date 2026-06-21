@@ -32,23 +32,22 @@ jobs:
       - name: Patch android configs
         run: |
           python3 - << 'PYEOF'
-          import os
+          import os, re, subprocess
 
           # Forçar Gradle 8.13
           wrapper_path = "android/gradle/wrapper/gradle-wrapper.properties"
-          wrapper_content = (
-              "distributionBase=GRADLE_USER_HOME\n"
-              "distributionPath=wrapper/dists\n"
-              "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.13-bin.zip\n"
-              "networkTimeout=10000\n"
-              "validateDistributionUrl=true\n"
-              "zipStoreBase=GRADLE_USER_HOME\n"
-              "zipStorePath=wrapper/dists\n"
-          )
           with open(wrapper_path, "w") as f:
-              f.write(wrapper_content)
+              f.write(
+                  "distributionBase=GRADLE_USER_HOME\n"
+                  "distributionPath=wrapper/dists\n"
+                  "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.13-bin.zip\n"
+                  "networkTimeout=10000\n"
+                  "validateDistributionUrl=true\n"
+                  "zipStoreBase=GRADLE_USER_HOME\n"
+                  "zipStorePath=wrapper/dists\n"
+              )
 
-          # Injetar kotlinVersion 2.1.20 no build.gradle
+          # Injetar kotlinVersion 2.1.20
           with open("android/build.gradle", "r") as f:
               content = f.read()
           if "kotlinVersion" not in content:
@@ -65,30 +64,41 @@ jobs:
           with open(gp_path, "r") as f:
               gp = f.read()
           gp = gp.replace("newArchEnabled=true", "newArchEnabled=false")
-          import re
           gp = re.sub(r"reactNativeArchitectures=.*", "reactNativeArchitectures=arm64-v8a", gp)
           with open(gp_path, "w") as f:
               f.write(gp)
 
+          # Descobrir ANDROID_SDK_ROOT e criar local.properties
+          sdk = os.environ.get("ANDROID_SDK_ROOT") or os.environ.get("ANDROID_HOME") or "/usr/local/lib/android/sdk"
+          with open("android/local.properties", "w") as f:
+              f.write(f"sdk.dir={sdk}\n")
+
+          # Diagnóstico
           print("=== gradle-wrapper.properties ===")
           print(open(wrapper_path).read())
-          print("=== build.gradle (12 linhas) ===")
-          print("\n".join(open("android/build.gradle").read().splitlines()[:12]))
+          print("=== build.gradle top ===")
+          print("\n".join(open("android/build.gradle").read().splitlines()[:15]))
+          print("=== local.properties ===")
+          print(open("android/local.properties").read())
+          print("=== app/build.gradle lines 10-20 ===")
+          lines = open("android/app/build.gradle").read().splitlines()
+          for i, l in enumerate(lines[9:20], start=10):
+              print(f"{i}: {l}")
           PYEOF
-
-      - name: Create local.properties
-        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
       - name: Build APK
-        run: cd android && ./gradlew assembleDebug --no-daemon
+        run: cd android && ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tail -100
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: familia-plus-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
