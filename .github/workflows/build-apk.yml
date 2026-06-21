@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Patch RN gradle plugin Kotlin version to 2.1.20
+        run: sed -i 's/kotlin = "1.9.25"/kotlin = "2.1.20"/' node_modules/@react-native/gradle-plugin/gradle/libs.versions.toml
+
       - name: Create local.properties
         run: echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
 
