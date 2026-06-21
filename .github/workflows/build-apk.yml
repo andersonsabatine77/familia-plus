@@ -36,17 +36,30 @@ jobs:
         run: |
           sed -i 's/newArchEnabled=true/newArchEnabled=false/' android/gradle.properties
           sed -i 's/reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/' android/gradle.properties
-          cat android/gradle.properties | grep -E "newArch|Architecture"
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build APK
-        run: cd android && ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Build APK (capture log)
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace > /tmp/gradle-log.txt 2>&1 || true
+          tail -150 /tmp/gradle-log.txt
+          # Fail if APK not generated
+          test -f app/build/outputs/apk/debug/app-debug.apk
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
-      - name: Find and upload APK
+      - name: Upload Gradle log (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-error-log
+          path: /tmp/gradle-log.txt
+          retention-days: 7
+
+      - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: familia-plus-debug
