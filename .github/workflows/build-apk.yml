@@ -29,37 +29,29 @@ jobs:
       - name: Prebuild Android
         run: npx expo prebuild --platform android --clean --non-interactive
 
-      - name: Create local.properties
-        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
-
-      - name: Patch gradle.properties
+      - name: Patch android configs
         run: |
+          # Downgrade Gradle para 8.10.2 (compatível com Kotlin 1.9)
+          sed -i 's|gradle-9.3.1-bin.zip|gradle-8.10.2-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
+          # Desabilitar new arch e limitar arquitetura
           sed -i 's/newArchEnabled=true/newArchEnabled=false/' android/gradle.properties
           sed -i 's/reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/' android/gradle.properties
+          # Confirmar mudanças
+          grep "distributionUrl" android/gradle/wrapper/gradle-wrapper.properties
+          grep -E "newArch|Architecture" android/gradle.properties
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build APK (capture log)
-        run: |
-          cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace > /tmp/gradle-log.txt 2>&1 || true
-          tail -150 /tmp/gradle-log.txt
-          # Fail if APK not generated
-          test -f app/build/outputs/apk/debug/app-debug.apk
+      - name: Build APK
+        run: cd android && ./gradlew assembleDebug --no-daemon
         env:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
-      - name: Upload Gradle log (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradle-error-log
-          path: /tmp/gradle-log.txt
-          retention-days: 7
-
       - name: Upload APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: familia-plus-debug
