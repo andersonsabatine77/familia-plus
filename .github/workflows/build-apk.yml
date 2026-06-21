@@ -26,67 +26,8 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Prebuild Android
-        run: npx expo prebuild --platform android --clean --non-interactive
-
-      - name: Patch android configs
-        run: |
-          python3 - << 'PYEOF'
-          import os, re, subprocess
-
-          # Forçar Gradle 8.13
-          wrapper_path = "android/gradle/wrapper/gradle-wrapper.properties"
-          with open(wrapper_path, "w") as f:
-              f.write(
-                  "distributionBase=GRADLE_USER_HOME\n"
-                  "distributionPath=wrapper/dists\n"
-                  "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.13-bin.zip\n"
-                  "networkTimeout=10000\n"
-                  "validateDistributionUrl=true\n"
-                  "zipStoreBase=GRADLE_USER_HOME\n"
-                  "zipStorePath=wrapper/dists\n"
-              )
-
-          # Injetar kotlinVersion 2.1.20
-          with open("android/build.gradle", "r") as f:
-              content = f.read()
-          if "kotlinVersion" not in content:
-              content = content.replace(
-                  "buildscript {",
-                  'buildscript {\n  ext {\n    kotlinVersion = "2.1.20"\n  }',
-                  1
-              )
-              with open("android/build.gradle", "w") as f:
-                  f.write(content)
-
-          # Desabilitar new arch e limitar arquitetura
-          gp_path = "android/gradle.properties"
-          with open(gp_path, "r") as f:
-              gp = f.read()
-          gp = gp.replace("newArchEnabled=true", "newArchEnabled=false")
-          gp = re.sub(r"reactNativeArchitectures=.*", "reactNativeArchitectures=arm64-v8a", gp)
-          with open(gp_path, "w") as f:
-              f.write(gp)
-
-          # Descobrir ANDROID_SDK_ROOT e criar local.properties
-          sdk = os.environ.get("ANDROID_SDK_ROOT") or os.environ.get("ANDROID_HOME") or "/usr/local/lib/android/sdk"
-          with open("android/local.properties", "w") as f:
-              f.write(f"sdk.dir={sdk}\n")
-
-          # Patch app/build.gradle: substituir "node" pelo caminho absoluto
-          # O subprocess do JVM não herda PATH do GitHub Actions, então node não é encontrado
-          import subprocess
-          node_path = subprocess.run(["which", "node"], capture_output=True, text=True).stdout.strip()
-          print(f"node path: {node_path}")
-          with open("android/app/build.gradle", "r") as f:
-              app_gradle = f.read()
-          app_gradle = app_gradle.replace('"node"', f'"{node_path}"')
-          with open("android/app/build.gradle", "w") as f:
-              f.write(app_gradle)
-
-          print("=== gradle-wrapper.properties ===")
-          print(open(wrapper_path).read())
-          PYEOF
+      - name: Create local.properties
+        run: echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
@@ -94,12 +35,8 @@ jobs:
       - name: Build APK
         run: cd android && ./gradlew assembleDebug --no-daemon
         env:
-          GRADLE_OPTS: "-Dorg.gradle.daemon=false"
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-
-      - name: Find APK
-        run: find android -name "*.apk" 2>/dev/null || echo "No APK found"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
