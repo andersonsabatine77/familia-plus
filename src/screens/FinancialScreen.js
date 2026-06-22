@@ -11,6 +11,7 @@ import { useData } from '../context/DataContext';
 import { FinancialCard, SummaryCard } from '../components/FinancialCard';
 import CustomButton from '../components/CustomButton';
 import DateField from '../components/DateField';
+import CurrencyField from '../components/CurrencyField';
 import {
   formatCurrency, formatMonthYear, filterByMonth, sumField,
   groupBy, generateId, parseDate, isOverdue,
@@ -184,7 +185,7 @@ function EntryForm({ type, initialData, onSave, onClose, colors }) {
   const isIncome  = type === 'income';
   const isEdit    = !!initialData;
   const [description, setDescription] = useState(initialData?.description ?? '');
-  const [amount,      setAmount]      = useState(initialData?.amount ? String(initialData.amount) : '');
+  const [amount,      setAmount]      = useState(initialData?.amount ?? '');
   const [date,        setDate]        = useState(initialData?.date ? initialData.date.slice(0, 10) : new Date().toISOString().slice(0, 10));
   const [dueDate,     setDueDate]     = useState(initialData?.dueDate ? initialData.dueDate.slice(0, 10) : '');
   const [category,    setCategory]    = useState(initialData?.category ?? 'other');
@@ -195,7 +196,7 @@ function EntryForm({ type, initialData, onSave, onClose, colors }) {
 
   const handleSave = () => {
     if (!description.trim()) return Alert.alert('Atenção', 'Informe a descrição.');
-    const parsed = parseFloat(String(amount).replace(',', '.'));
+    const parsed = Number(amount);
     if (isNaN(parsed) || parsed <= 0) return Alert.alert('Atenção', 'Informe um valor válido.');
 
     onSave({
@@ -226,14 +227,7 @@ function EntryForm({ type, initialData, onSave, onClose, colors }) {
       />
 
       <Text style={s.label}>Valor (R$) *</Text>
-      <TextInput
-        style={s.input}
-        value={amount}
-        onChangeText={setAmount}
-        placeholder="0,00"
-        keyboardType="decimal-pad"
-        placeholderTextColor={colors.textDisabled}
-      />
+      <CurrencyField value={amount} onChangeValue={setAmount} />
 
       <Text style={s.label}>Data</Text>
       <DateField value={date} onChange={setDate} placeholder="Selecionar data" />

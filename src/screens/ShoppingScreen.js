@@ -9,6 +9,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { MarketItem, HouseItem } from '../components/ShoppingItem';
 import CustomButton from '../components/CustomButton';
+import CurrencyField from '../components/CurrencyField';
 import { formatCurrency, sumField } from '../utils/formatters';
 import { buildMarketListMessage, sendWhatsApp } from '../utils/whatsapp';
 import { spacing, radius, fontSize, fontWeight } from '../styles/spacing';
@@ -27,7 +28,7 @@ function MarketItemForm({ onSave, onClose, colors }) {
     onSave({
       name: name.trim(),
       quantity: parseInt(qty) || 1,
-      estimatedPrice: parseFloat(price.replace(',', '.')) || 0,
+      estimatedPrice: Number(price) || 0,
       category,
     });
     onClose();
@@ -41,7 +42,7 @@ function MarketItemForm({ onSave, onClose, colors }) {
       <Text style={s.label}>Quantidade</Text>
       <TextInput style={s.input} value={qty} onChangeText={setQty} keyboardType="number-pad" placeholder="1" placeholderTextColor={colors.textDisabled} />
       <Text style={s.label}>Preço estimado (R$)</Text>
-      <TextInput style={s.input} value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder="0,00" placeholderTextColor={colors.textDisabled} />
+      <CurrencyField value={price} onChangeValue={setPrice} />
       <Text style={s.label}>Categoria</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
         {shoppingCategories.map(cat => (
@@ -80,7 +81,7 @@ function HouseItemForm({ onSave, onClose, colors }) {
     if (!name.trim()) return Alert.alert('Atenção', 'Informe o nome do item.');
     onSave({
       name: name.trim(),
-      estimatedPrice: parseFloat(price.replace(',', '.')) || 0,
+      estimatedPrice: Number(price) || 0,
       priority,
       status: 'planned',
     });
@@ -93,7 +94,7 @@ function HouseItemForm({ onSave, onClose, colors }) {
       <Text style={s.label}>Item *</Text>
       <TextInput style={s.input} value={name} onChangeText={setName} placeholder="Ex.: Cadeira de escritório" placeholderTextColor={colors.textDisabled} />
       <Text style={s.label}>Preço estimado (R$)</Text>
-      <TextInput style={s.input} value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder="0,00" placeholderTextColor={colors.textDisabled} />
+      <CurrencyField value={price} onChangeValue={setPrice} />
       <Text style={s.label}>Prioridade</Text>
       <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
         {priorities.map(p => (
