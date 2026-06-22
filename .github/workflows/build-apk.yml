@@ -26,15 +26,10 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Prebuild Android
-        run: npx expo prebuild --platform android --clean --non-interactive
-
-      - name: Patch RN gradle plugin to skip Kotlin metadata version check
+      - name: Patch RN gradle plugin (skip Kotlin metadata version check)
         run: |
-          # Gradle 9.3.1 uses Kotlin 2.2 internally; RN gradle plugin uses Kotlin 1.9.25
-          # The 1.9.25 compiler can't read 2.2 metadata → add -Xskip-metadata-version-check
           python3 - << 'PYEOF'
-          import os, glob
+          import glob
           flag = '"-Xskip-metadata-version-check"'
           target = 'node_modules/@react-native/gradle-plugin'
           for path in glob.glob(f'{target}/**/build.gradle.kts', recursive=True):
@@ -48,85 +43,6 @@ jobs:
                   with open(path, 'w') as f:
                       f.write(content)
                   print(f'Patched: {path}')
-          PYEOF
-
-      - name: Patch android configs
-        run: |
-          python3 - << 'PYEOF'
-          import os, re, subprocess
-
-          # 1. Injetar kotlinVersion 2.1.20 no build.gradle
-          with open("android/build.gradle") as f:
-              content = f.read()
-          if "kotlinVersion" not in content:
-              content = content.replace("buildscript {",
-                  'buildscript {\n  ext {\n    kotlinVersion = "2.1.20"\n    kspVersion = "2.1.20-2.0.1"\n  }', 1)
-              with open("android/build.gradle", "w") as f:
-                  f.write(content)
-
-          # 2. Substituir react {} block em app/build.gradle com caminhos fixos
-          # hermes-compiler não existe como pacote em RN 0.76 (está em sdks/hermesc)
-          # O JVM subprocess não encontra node mesmo com PATH correto
-          with open("android/app/build.gradle") as f:
-              app = f.read()
-          # Substituir todo o bloco react { ... entryFile/reactNativeDir/hermesCommand/codegenDir/cliFile
-          import re
-          app = re.sub(
-              r'entryFile\s*=\s*file\([^\n]+\)',
-              'entryFile = file("$projectRoot/node_modules/expo/AppEntry.js")',
-              app
-          )
-          app = re.sub(
-              r'reactNativeDir\s*=\s*new File\([^\n]+\)',
-              'reactNativeDir = new File("$projectRoot/node_modules/react-native")',
-              app
-          )
-          app = re.sub(
-              r'hermesCommand\s*=\s*new File\([^\n]+\)',
-              'hermesCommand = "$projectRoot/node_modules/react-native/sdks/hermesc/%OS-BIN%/hermesc"',
-              app
-          )
-          app = re.sub(
-              r'codegenDir\s*=\s*new File\([^\n]+\)',
-              'codegenDir = new File("$projectRoot/node_modules/@react-native/codegen")',
-              app
-          )
-          app = re.sub(
-              r'cliFile\s*=\s*new File\([^\n]+\)',
-              'cliFile = new File("$projectRoot/node_modules/@expo/cli/build/src/bin/cli.js")',
-              app
-          )
-          # Remover propriedade desconhecida enableBundleCompression
-          app = re.sub(r'\s*enableBundleCompression\s*=\s*[^\n]+\n', '\n', app)
-          with open("android/app/build.gradle", "w") as f:
-              f.write(app)
-          print("app/build.gradle patched OK")
-
-          # 4. Forçar Kotlin 2.1.20 no pluginManagement do settings.gradle
-          # O composite build (RN plugin) fornece Kotlin 1.9.25 para o classpath
-          # A resolutionStrategy garante que somente 2.1.20 é usada
-          with open("android/settings.gradle") as f:
-              settings = f.read()
-          resolution = '''
-  resolutionStrategy {
-    eachPlugin {
-      if (requested.id.id.startsWith("org.jetbrains.kotlin")) {
-        useVersion("2.1.20")
-      }
-    }
-  }
-'''
-          settings = settings.replace('pluginManagement {', 'pluginManagement {' + resolution, 1)
-          with open("android/settings.gradle", "w") as f:
-              f.write(settings)
-          print("settings.gradle patched OK")
-
-          # 3. local.properties
-          sdk = os.environ.get("ANDROID_SDK_ROOT", "/usr/local/lib/android/sdk")
-          with open("android/local.properties", "w") as f:
-              f.write(f"sdk.dir={sdk}\n")
-
-          print("Done patching android configs")
           PYEOF
 
       - name: Create local.properties
