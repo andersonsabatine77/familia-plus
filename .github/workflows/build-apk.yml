@@ -23,36 +23,26 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Remove stale android folder
+        run: rm -rf android
+
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Patch RN gradle plugin (skip Kotlin metadata version check)
-        run: |
-          python3 - << 'PYEOF'
-          import glob
-          flag = '"-Xskip-metadata-version-check"'
-          target = 'node_modules/@react-native/gradle-plugin'
-          for path in glob.glob(f'{target}/**/build.gradle.kts', recursive=True):
-              with open(path) as f:
-                  content = f.read()
-              if 'Xskip-metadata-version-check' not in content and 'kotlinOptions' in content:
-                  content = content.replace(
-                      'allWarningsAsErrors =',
-                      f'freeCompilerArgs = listOf({flag})\n      allWarningsAsErrors ='
-                  )
-                  with open(path, 'w') as f:
-                      f.write(content)
-                  print(f'Patched: {path}')
-          PYEOF
+      - name: Align dependencies to Expo SDK
+        run: npx expo install --fix
+
+      - name: Prebuild Android (clean)
+        run: npx expo prebuild --platform android --clean --non-interactive
 
       - name: Create local.properties
-        run: echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
       - name: Build APK
-        run: cd android && ./gradlew assembleDebug --no-daemon
+        run: cd android && ./gradlew assembleDebug --no-daemon --stacktrace
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
