@@ -51,16 +51,17 @@ jobs:
               app = f.read()
 
           # 1. Adicionar signingConfig 'release' lendo de variaveis de ambiente
-          release_cfg = '''
-        release {
-            storeFile file(System.getenv("UPLOAD_STORE_FILE") ?: "upload.jks")
-            storePassword System.getenv("UPLOAD_STORE_PASSWORD")
-            keyAlias System.getenv("UPLOAD_KEY_ALIAS")
-            keyPassword System.getenv("UPLOAD_KEY_PASSWORD")
-        }
-'''
+          lines = [
+              '\n        release {',
+              '            storeFile file(System.getenv("UPLOAD_STORE_FILE") ?: "upload.jks")',
+              '            storePassword System.getenv("UPLOAD_STORE_PASSWORD")',
+              '            keyAlias System.getenv("UPLOAD_KEY_ALIAS")',
+              '            keyPassword System.getenv("UPLOAD_KEY_PASSWORD")',
+              '        }',
+          ]
+          release_cfg = "\n".join(lines) + "\n"
           # injeta logo apos a abertura do bloco signingConfigs { (que ja contem 'debug')
-          app = re.sub(r'(signingConfigs\s*\{)', r'\1' + release_cfg, app, count=1)
+          app = re.sub(r'(signingConfigs\s*\{)', lambda m: m.group(1) + release_cfg, app, count=1)
 
           # 2. No buildType release, trocar a assinatura debug pela release
           app = re.sub(
