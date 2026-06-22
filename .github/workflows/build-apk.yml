@@ -50,10 +50,37 @@ jobs:
                   print(f'Patched: {path}')
           PYEOF
 
-      - name: Patch kotlinVersion in build.gradle
+      - name: Patch android configs
         run: |
-          sed -i 's/buildscript {/buildscript {\n  ext {\n    kotlinVersion = "2.1.20"\n    kspVersion = "2.1.20-2.0.1"\n  }/' android/build.gradle
-          head -10 android/build.gradle
+          python3 - << 'PYEOF'
+          import os, re, subprocess
+
+          # 1. Injetar kotlinVersion 2.1.20 no build.gradle
+          with open("android/build.gradle") as f:
+              content = f.read()
+          if "kotlinVersion" not in content:
+              content = content.replace("buildscript {",
+                  'buildscript {\n  ext {\n    kotlinVersion = "2.1.20"\n    kspVersion = "2.1.20-2.0.1"\n  }', 1)
+              with open("android/build.gradle", "w") as f:
+                  f.write(content)
+
+          # 2. Substituir "node" pelo caminho absoluto em app/build.gradle
+          # O JVM subprocess não herda PATH do GitHub Actions
+          node_path = subprocess.run(["which", "node"], capture_output=True, text=True).stdout.strip()
+          print(f"node: {node_path}")
+          with open("android/app/build.gradle") as f:
+              app = f.read()
+          app = app.replace('"node"', f'"{node_path}"')
+          with open("android/app/build.gradle", "w") as f:
+              f.write(app)
+
+          # 3. local.properties
+          sdk = os.environ.get("ANDROID_SDK_ROOT", "/usr/local/lib/android/sdk")
+          with open("android/local.properties", "w") as f:
+              f.write(f"sdk.dir={sdk}\n")
+
+          print("Done patching android configs")
+          PYEOF
 
       - name: Create local.properties
         run: echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
