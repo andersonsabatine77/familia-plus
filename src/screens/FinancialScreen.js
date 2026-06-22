@@ -17,6 +17,7 @@ import {
   groupBy, generateId, parseDate, isOverdue,
 } from '../utils/formatters';
 import { spacing, radius, fontSize, fontWeight, elevation } from '../styles/spacing';
+import { sendWhatsApp, buildBillReminderMessage } from '../utils/whatsapp';
 import { expenseCategories } from '../styles/colors';
 
 
@@ -277,7 +278,7 @@ function EntryForm({ type, initialData, onSave, onClose, colors }) {
 export default function FinancialScreen() {
   const { colors }  = useTheme();
   const {
-    finances, addIncome, updateIncome, addExpense, updateExpense, deleteIncome, deleteExpense, toggleExpensePaid,
+    finances, settings, addIncome, updateIncome, addExpense, updateExpense, deleteIncome, deleteExpense, toggleExpensePaid,
   } = useData();
 
   const [now,         setNow]         = useState(new Date());
@@ -290,6 +291,23 @@ export default function FinancialScreen() {
     setEditItem({ item, type });
     setModalType(type);
   }, []);
+
+  // Abre o WhatsApp com o lembrete da conta pronto (o usuário só toca em enviar)
+  const handleWhatsApp = useCallback((item) => {
+    const numbers = (settings?.whatsappNumbers || []).filter(n => n && n.trim());
+    const msg = buildBillReminderMessage(item);
+    if (numbers.length === 0) {
+      return Alert.alert('Nenhum número', 'Cadastre um número de WhatsApp em Configurações → Avisos via WhatsApp.');
+    }
+    if (numbers.length === 1) {
+      return sendWhatsApp(numbers[0], msg);
+    }
+    // Vários números: escolher para quem enviar
+    Alert.alert('Enviar lembrete para:', undefined, [
+      ...numbers.map(n => ({ text: n, onPress: () => sendWhatsApp(n, msg) })),
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  }, [settings]);
 
   const handleSave = useCallback(async (data) => {
     if (editItem) {
@@ -463,6 +481,7 @@ export default function FinancialScreen() {
                     onEdit={() => openEdit(item, isInc ? 'income' : 'expense')}
                     onDelete={isInc ? () => deleteIncome(item.id) : () => deleteExpense(item.id)}
                     onTogglePaid={!isInc ? () => toggleExpensePaid(item.id) : null}
+                    onWhatsApp={!isInc ? handleWhatsApp : null}
                   />
                 );
               })
@@ -550,6 +569,7 @@ export default function FinancialScreen() {
                   onEdit={() => openEdit(item, 'expense')}
                   onDelete={() => deleteExpense(item.id)}
                   onTogglePaid={() => toggleExpensePaid(item.id)}
+                  onWhatsApp={handleWhatsApp}
                 />
               ))
             )}

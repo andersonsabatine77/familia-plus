@@ -7,7 +7,7 @@ import { spacing, radius, fontSize, fontWeight, elevation } from '../styles/spac
 import { expenseCategories } from '../styles/colors';
 
 // Card de transação financeira (receita ou despesa)
-export function FinancialCard({ item, type, onPress, onEdit, onDelete, onTogglePaid }) {
+export function FinancialCard({ item, type, onPress, onEdit, onDelete, onTogglePaid, onWhatsApp }) {
   const { colors } = useTheme();
   const s = buildStyles(colors);
 
@@ -54,6 +54,11 @@ export function FinancialCard({ item, type, onPress, onEdit, onDelete, onToggleP
                 size={20}
                 color={item.paid ? colors.success : colors.textSecondary}
               />
+            </TouchableOpacity>
+          )}
+          {isExpense && onWhatsApp && !item.paid && (
+            <TouchableOpacity onPress={() => onWhatsApp(item)} hitSlop={8}>
+              <Ionicons name="logo-whatsapp" size={19} color="#25D366" />
             </TouchableOpacity>
           )}
           {onEdit && (
