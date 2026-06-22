@@ -80,6 +80,10 @@ export default function SettingsScreen() {
   const [memberName,  setMemberName]  = useState('');
   const [memberPhone, setMemberPhone] = useState('');
 
+  const [timeModal, setTimeModal] = useState(false);
+  const [tmpHour,   setTmpHour]   = useState(9);
+  const [tmpMin,    setTmpMin]    = useState(0);
+
   const s = buildStyles(colors);
 
   // ── Backup ──────────────────────────────────────────────────────────────────
@@ -152,6 +156,30 @@ export default function SettingsScreen() {
     const current = settings.billsAlertDays || [];
     const next = current.includes(day) ? current.filter(d => d !== day) : [...current, day].sort((a, b) => a - b);
     updateSettings({ billsAlertDays: next });
+  };
+
+  // ── Horário do alerta ─────────────────────────────────────────────────────────
+  const alertTime = settings.billsAlertTime || '09:00';
+
+  const openTimePicker = () => {
+    const [h, m] = alertTime.split(':').map(n => parseInt(n, 10) || 0);
+    setTmpHour(h);
+    setTmpMin(m);
+    setTimeModal(true);
+  };
+
+  const step = (setter, value, delta, max) => {
+    let next = value + delta;
+    if (next < 0) next = max;
+    if (next > max) next = 0;
+    setter(next);
+  };
+
+  const saveTime = () => {
+    const hh = String(tmpHour).padStart(2, '0');
+    const mm = String(tmpMin).padStart(2, '0');
+    updateSettings({ billsAlertTime: `${hh}:${mm}` });
+    setTimeModal(false);
   };
 
   // ── WhatsApp ──────────────────────────────────────────────────────────────────
@@ -228,30 +256,42 @@ export default function SettingsScreen() {
           </View>
 
           {settings.notificationsEnabled && (
-            <View style={{ padding: spacing.md, borderBottomWidth: 0 }}>
-              <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm, marginBottom: spacing.sm }}>
-                Alertar contas com antecedência de:
-              </Text>
-              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-                {[1, 3, 7].map(day => {
-                  const active = (settings.billsAlertDays || []).includes(day);
-                  return (
-                    <TouchableOpacity
-                      key={day}
-                      style={[
-                        s.dayChip,
-                        active && { backgroundColor: colors.primary },
-                      ]}
-                      onPress={() => toggleAlertDay(day)}
-                    >
-                      <Text style={[s.dayChipText, active && { color: '#fff' }]}>
-                        {day}d
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+            <>
+              <SettingRow
+                icon="time-outline"
+                label="Horário do alerta"
+                value={alertTime}
+                onPress={openTimePicker}
+                colors={colors}
+              />
+              <View style={{ padding: spacing.md, borderBottomWidth: 0 }}>
+                <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm, marginBottom: spacing.sm }}>
+                  Alertar contas com antecedência de:
+                </Text>
+                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                  {[1, 3, 7].map(day => {
+                    const active = (settings.billsAlertDays || []).includes(day);
+                    return (
+                      <TouchableOpacity
+                        key={day}
+                        style={[
+                          s.dayChip,
+                          active && { backgroundColor: colors.primary },
+                        ]}
+                        onPress={() => toggleAlertDay(day)}
+                      >
+                        <Text style={[s.dayChipText, active && { color: '#fff' }]}>
+                          {day}d
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <Text style={{ color: colors.textDisabled, fontSize: fontSize.xs, marginTop: spacing.sm }}>
+                  As contas a vencer avisam neste horário. Vale para novos lembretes criados a partir de agora.
+                </Text>
               </View>
-            </View>
+            </>
           )}
         </Section>
 
@@ -338,6 +378,46 @@ export default function SettingsScreen() {
         </Section>
       </ScrollView>
 
+      {/* Modal de horário do alerta */}
+      <Modal visible={timeModal} transparent animationType="slide" onRequestClose={() => setTimeModal(false)}>
+        <View style={s.modalOverlay}>
+          <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
+            <Text style={s.modalTitle}>Horário do alerta</Text>
+            <View style={s.timeRow}>
+              {/* Hora */}
+              <View style={s.timeCol}>
+                <TouchableOpacity onPress={() => step(setTmpHour, tmpHour, 1, 23)} hitSlop={10}>
+                  <Ionicons name="chevron-up" size={28} color={colors.primary} />
+                </TouchableOpacity>
+                <Text style={[s.timeNum, { color: colors.text }]}>{String(tmpHour).padStart(2, '0')}</Text>
+                <TouchableOpacity onPress={() => step(setTmpHour, tmpHour, -1, 23)} hitSlop={10}>
+                  <Ionicons name="chevron-down" size={28} color={colors.primary} />
+                </TouchableOpacity>
+                <Text style={[s.timeLbl, { color: colors.textSecondary }]}>hora</Text>
+              </View>
+
+              <Text style={[s.timeSep, { color: colors.text }]}>:</Text>
+
+              {/* Minuto */}
+              <View style={s.timeCol}>
+                <TouchableOpacity onPress={() => step(setTmpMin, tmpMin, 5, 55)} hitSlop={10}>
+                  <Ionicons name="chevron-up" size={28} color={colors.primary} />
+                </TouchableOpacity>
+                <Text style={[s.timeNum, { color: colors.text }]}>{String(tmpMin).padStart(2, '0')}</Text>
+                <TouchableOpacity onPress={() => step(setTmpMin, tmpMin, -5, 55)} hitSlop={10}>
+                  <Ionicons name="chevron-down" size={28} color={colors.primary} />
+                </TouchableOpacity>
+                <Text style={[s.timeLbl, { color: colors.textSecondary }]}>min</Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg }}>
+              <CustomButton title="Cancelar" variant="outline" onPress={() => setTimeModal(false)} style={{ flex: 1 }} />
+              <CustomButton title="Salvar"   variant="primary" onPress={saveTime}                 style={{ flex: 1 }} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal de membro */}
       <Modal visible={familyModal} transparent animationType="slide" onRequestClose={() => setFamilyModal(false)}>
         <View style={s.modalOverlay}>
@@ -384,6 +464,12 @@ const buildStyles = (colors) =>
       backgroundColor: colors.surfaceVariant,
     },
     dayChipText: { fontSize: fontSize.md, fontWeight: fontWeight.semibold, color: colors.textSecondary },
+
+    timeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.md },
+    timeCol: { alignItems: 'center', minWidth: 72 },
+    timeNum: { fontSize: 44, fontWeight: fontWeight.bold, marginVertical: spacing.xs, fontVariant: ['tabular-nums'] },
+    timeSep: { fontSize: 44, fontWeight: fontWeight.bold, marginBottom: 18 },
+    timeLbl: { fontSize: fontSize.xs, marginTop: 2 },
 
     modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
     modalSheet: {

@@ -11,7 +11,7 @@ export function DataProvider({ children }) {
   const [shopping,  setShopping]  = useState({ marketList: [], houseList: [] });
   const [calendar,  setCalendar]  = useState({ events: [] });
   const [family,    setFamily]    = useState([]);
-  const [settings,  setSettings]  = useState({ notificationsEnabled: true, billsAlertDays: [1, 3, 7], whatsappNumbers: ['', '', ''] });
+  const [settings,  setSettings]  = useState({ notificationsEnabled: true, billsAlertDays: [1, 3, 7], billsAlertTime: '09:00', whatsappNumbers: ['', '', ''] });
   const [defaultMarketList, setDefaultMarketListState] = useState([]);
   const [loading,   setLoading]   = useState(true);
 
@@ -75,7 +75,7 @@ export function DataProvider({ children }) {
     setFinances(next);
     await persist(STORAGE_KEYS.FINANCES, next);
     if (settings.notificationsEnabled) {
-      await scheduleBillAlert(item, settings.billsAlertDays);
+      await scheduleBillAlert(item, settings.billsAlertDays, settings.billsAlertTime);
     }
   }, [finances, settings]);
 

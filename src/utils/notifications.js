@@ -45,14 +45,16 @@ export async function listScheduledNotifications() {
 }
 
 // Agenda alertas de conta a vencer nos dias configurados (ex: [1, 3, 7])
-export async function scheduleBillAlert(expense, alertDays) {
+// alertTime: horário do disparo no formato 'HH:MM' (padrão 09:00)
+export async function scheduleBillAlert(expense, alertDays, alertTime = '09:00') {
   if (!expense.dueDate || expense.paid) return;
   const due = new Date(expense.dueDate);
+  const [ah, am] = String(alertTime || '09:00').split(':').map(n => parseInt(n, 10) || 0);
 
   for (const days of alertDays) {
     const alertDate = new Date(due);
     alertDate.setDate(alertDate.getDate() - days);
-    alertDate.setHours(9, 0, 0, 0); // às 9h da manhã
+    alertDate.setHours(ah, am, 0, 0); // horário configurado pelo usuário
 
     if (alertDate > new Date()) {
       await scheduleNotification({
