@@ -2,6 +2,9 @@ name: Build AAB (Play Store)
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build:
