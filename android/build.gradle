@@ -12,7 +12,7 @@ buildscript {
   dependencies {
     classpath('com.android.tools.build:gradle')
     classpath('com.facebook.react:react-native-gradle-plugin')
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20')
   }
 }
 
@@ -21,6 +21,16 @@ allprojects {
     google()
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
+  }
+  // Force Kotlin 2.1.20 everywhere so pika-compiler version matches
+  configurations.all {
+    resolutionStrategy {
+      force 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20'
+      force 'org.jetbrains.kotlin:kotlin-stdlib:2.1.20'
+      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.20'
+      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.20'
+      force 'org.jetbrains.kotlin:kotlin-reflect:2.1.20'
+    }
   }
 }
 
