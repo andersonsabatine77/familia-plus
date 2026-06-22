@@ -96,11 +96,11 @@ jobs:
               'cliFile = new File("$projectRoot/node_modules/@expo/cli/build/src/bin/cli.js")',
               app
           )
+          # Remover propriedade desconhecida enableBundleCompression
+          app = re.sub(r'\s*enableBundleCompression\s*=\s*[^\n]+\n', '\n', app)
           with open("android/app/build.gradle", "w") as f:
               f.write(app)
-          # Confirmar substituições
-          for line in app.split('\n')[10:25]:
-              print(line)
+          print("app/build.gradle patched OK")
 
           # 3. local.properties
           sdk = os.environ.get("ANDROID_SDK_ROOT", "/usr/local/lib/android/sdk")
