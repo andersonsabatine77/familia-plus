@@ -1,0 +1,95 @@
+name: Build AAB (Play Store)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Remove stale android folder
+        run: rm -rf android
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Align dependencies to Expo SDK
+        run: npx expo install --fix
+
+      - name: Prebuild Android (clean)
+        run: npx expo prebuild --platform android --clean --non-interactive
+
+      - name: Decode upload keystore
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/upload.jks
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Configure release signing
+        run: |
+          python3 - << 'PYEOF'
+          import re
+          path = 'android/app/build.gradle'
+          with open(path) as f:
+              app = f.read()
+
+          # 1. Adicionar signingConfig 'release' lendo de variaveis de ambiente
+          release_cfg = '''
+        release {
+            storeFile file(System.getenv("UPLOAD_STORE_FILE") ?: "upload.jks")
+            storePassword System.getenv("UPLOAD_STORE_PASSWORD")
+            keyAlias System.getenv("UPLOAD_KEY_ALIAS")
+            keyPassword System.getenv("UPLOAD_KEY_PASSWORD")
+        }
+'''
+          # injeta logo apos a abertura do bloco signingConfigs { (que ja contem 'debug')
+          app = re.sub(r'(signingConfigs\s*\{)', r'\1' + release_cfg, app, count=1)
+
+          # 2. No buildType release, trocar a assinatura debug pela release
+          app = re.sub(
+              r'(buildTypes\s*\{[\s\S]*?release\s*\{[\s\S]*?signingConfig\s+signingConfigs\.)debug',
+              r'\1release',
+              app, count=1
+          )
+
+          with open(path, 'w') as f:
+              f.write(app)
+          print('signing config aplicado')
+          PYEOF
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build AAB (bundleRelease)
+        run: cd android && ./gradlew bundleRelease --no-daemon --stacktrace
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+          UPLOAD_STORE_FILE: upload.jks
+          UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: familia-plus-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
