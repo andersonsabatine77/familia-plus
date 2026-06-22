@@ -64,15 +64,43 @@ jobs:
               with open("android/build.gradle", "w") as f:
                   f.write(content)
 
-          # 2. Substituir "node" pelo caminho absoluto em app/build.gradle
-          # O JVM subprocess não herda PATH do GitHub Actions
-          node_path = subprocess.run(["which", "node"], capture_output=True, text=True).stdout.strip()
-          print(f"node: {node_path}")
+          # 2. Substituir react {} block em app/build.gradle com caminhos fixos
+          # hermes-compiler não existe como pacote em RN 0.76 (está em sdks/hermesc)
+          # O JVM subprocess não encontra node mesmo com PATH correto
           with open("android/app/build.gradle") as f:
               app = f.read()
-          app = app.replace('"node"', f'"{node_path}"')
+          # Substituir todo o bloco react { ... entryFile/reactNativeDir/hermesCommand/codegenDir/cliFile
+          import re
+          app = re.sub(
+              r'entryFile\s*=\s*file\([^\n]+\)',
+              'entryFile = file("$projectRoot/node_modules/expo/AppEntry.js")',
+              app
+          )
+          app = re.sub(
+              r'reactNativeDir\s*=\s*new File\([^\n]+\)',
+              'reactNativeDir = new File("$projectRoot/node_modules/react-native")',
+              app
+          )
+          app = re.sub(
+              r'hermesCommand\s*=\s*new File\([^\n]+\)',
+              'hermesCommand = "$projectRoot/node_modules/react-native/sdks/hermesc/%OS-BIN%/hermesc"',
+              app
+          )
+          app = re.sub(
+              r'codegenDir\s*=\s*new File\([^\n]+\)',
+              'codegenDir = new File("$projectRoot/node_modules/@react-native/codegen")',
+              app
+          )
+          app = re.sub(
+              r'cliFile\s*=\s*new File\([^\n]+\)',
+              'cliFile = new File("$projectRoot/node_modules/@expo/cli/build/src/bin/cli.js")',
+              app
+          )
           with open("android/app/build.gradle", "w") as f:
               f.write(app)
+          # Confirmar substituições
+          for line in app.split('\n')[10:25]:
+              print(line)
 
           # 3. local.properties
           sdk = os.environ.get("ANDROID_SDK_ROOT", "/usr/local/lib/android/sdk")
