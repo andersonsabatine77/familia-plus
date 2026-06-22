@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { loadData, saveData, STORAGE_KEYS, initializeStorage } from '../utils/storage';
 import { generateId } from '../utils/formatters';
-import { scheduleBillAlert, cancelNotification } from '../utils/notifications';
+import { scheduleBillAlert, cancelNotification, rescheduleAllBillAlerts } from '../utils/notifications';
 
 const DataContext = createContext(null);
 
@@ -269,7 +269,11 @@ export function DataProvider({ children }) {
     const next = { ...settings, ...data };
     setSettings(next);
     await persist(STORAGE_KEYS.SETTINGS, next);
-  }, [settings]);
+    // Reagenda todos os alertas de conta se mudou horário, dias ou ativou/desativou notificações
+    if ('billsAlertTime' in data || 'billsAlertDays' in data || 'notificationsEnabled' in data) {
+      await rescheduleAllBillAlerts(finances.expenses, next);
+    }
+  }, [settings, finances]);
 
   const value = useMemo(() => ({
     // estado

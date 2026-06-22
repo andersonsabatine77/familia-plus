@@ -288,7 +288,7 @@ export default function SettingsScreen() {
                   })}
                 </View>
                 <Text style={{ color: colors.textDisabled, fontSize: fontSize.xs, marginTop: spacing.sm }}>
-                  As contas a vencer avisam neste horário. Vale para novos lembretes criados a partir de agora.
+                  As contas a vencer avisam neste horário. Ao alterar, todos os lembretes existentes são reagendados automaticamente.
                 </Text>
               </View>
             </>

@@ -68,6 +68,25 @@ export async function scheduleBillAlert(expense, alertDays, alertTime = '09:00')
   }
 }
 
+// Reagenda TODOS os alertas de conta com as configurações atuais.
+// Cancela os alertas de conta já agendados (sem mexer em eventos/remédios)
+// e recria conforme o horário/dias vigentes. Chamado ao alterar as configurações.
+export async function rescheduleAllBillAlerts(expenses = [], settings = {}) {
+  const all = await Notifications.getAllScheduledNotificationsAsync();
+  for (const n of all) {
+    const id = n.identifier || '';
+    if (id.startsWith('bill-')) {
+      await Notifications.cancelScheduledNotificationAsync(id);
+    }
+  }
+  if (!settings.notificationsEnabled) return;
+  const days = settings.billsAlertDays || [];
+  const time = settings.billsAlertTime || '09:00';
+  for (const exp of expenses) {
+    await scheduleBillAlert(exp, days, time);
+  }
+}
+
 // Agenda lembrete para evento do calendário
 export async function scheduleEventAlert(event, minutesBefore = 60) {
   const eventDate = parseDate(event.date);
