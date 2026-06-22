@@ -7,18 +7,32 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
+    "icon": "./assets/icons/icon.png",
+    "splash": {
+      "image": "./assets/icons/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#6C63FF"
+    },
     "android": {
       "package": "com.familiaplus.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/adaptive-icon.png",
+        "backgroundColor": "#6C63FF"
+      },
       "permissions": [
         "NOTIFICATIONS",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE"
       ]
     },
+    "web": {
+      "favicon": "./assets/icons/favicon.png"
+    },
     "plugins": [
       [
         "expo-notifications",
         {
+          "icon": "./assets/icons/notification-icon.png",
           "color": "#6C63FF",
           "sounds": []
         }

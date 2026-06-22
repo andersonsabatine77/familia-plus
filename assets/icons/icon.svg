@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#7B6CFF"/>
+      <stop offset="55%"  stop-color="#6C63FF"/>
+      <stop offset="100%" stop-color="#43C6AC"/>
+    </linearGradient>
+    <linearGradient id="heart" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#FF7B9C"/>
+      <stop offset="100%" stop-color="#FF5C7C"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="26" flood-color="#000000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Fundo squircle -->
+  <rect width="1024" height="1024" rx="232" fill="url(#bg)"/>
+
+  <!-- Casa (telhado + corpo) em branco -->
+  <g filter="url(#soft)">
+    <!-- Telhado -->
+    <path d="M512 250 L792 470 L232 470 Z" fill="#FFFFFF"/>
+    <!-- Corpo da casa -->
+    <rect x="300" y="455" width="424" height="320" rx="34" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Coração (a "família" dentro do lar) -->
+  <path d="M512 715
+           C512 715 410 648 410 565
+           C410 520 446 488 492 488
+           C512 488 512 488 512 510
+           C512 488 512 488 532 488
+           C578 488 614 520 614 565
+           C614 648 512 715 512 715 Z"
+        fill="url(#heart)"/>
+
+  <!-- Sinal "+" representando o "Família+" -->
+  <g fill="#43C6AC">
+    <rect x="744" y="700" width="120" height="120" rx="60" fill="#FFFFFF"/>
+    <rect x="792" y="724" width="24" height="72" rx="12" fill="#43C6AC"/>
+    <rect x="768" y="748" width="72" height="24" rx="12" fill="#43C6AC"/>
+  </g>
+</svg>
