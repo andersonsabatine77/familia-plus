@@ -102,6 +102,25 @@ jobs:
               f.write(app)
           print("app/build.gradle patched OK")
 
+          # 4. Forçar Kotlin 2.1.20 no pluginManagement do settings.gradle
+          # O composite build (RN plugin) fornece Kotlin 1.9.25 para o classpath
+          # A resolutionStrategy garante que somente 2.1.20 é usada
+          with open("android/settings.gradle") as f:
+              settings = f.read()
+          resolution = '''
+  resolutionStrategy {
+    eachPlugin {
+      if (requested.id.id.startsWith("org.jetbrains.kotlin")) {
+        useVersion("2.1.20")
+      }
+    }
+  }
+'''
+          settings = settings.replace('pluginManagement {', 'pluginManagement {' + resolution, 1)
+          with open("android/settings.gradle", "w") as f:
+              f.write(settings)
+          print("settings.gradle patched OK")
+
           # 3. local.properties
           sdk = os.environ.get("ANDROID_SDK_ROOT", "/usr/local/lib/android/sdk")
           with open("android/local.properties", "w") as f:
