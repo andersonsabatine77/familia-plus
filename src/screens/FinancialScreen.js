@@ -12,7 +12,7 @@ import { FinancialCard, SummaryCard } from '../components/FinancialCard';
 import CustomButton from '../components/CustomButton';
 import {
   formatCurrency, formatMonthYear, filterByMonth, sumField,
-  groupBy, generateId,
+  groupBy, generateId, parseDate, isOverdue,
 } from '../utils/formatters';
 import { spacing, radius, fontSize, fontWeight, elevation } from '../styles/spacing';
 import { expenseCategories } from '../styles/colors';
@@ -64,10 +64,10 @@ function PatrimonyChart({ finances, colors: themeColors }) {
       const y = d.getFullYear();
       const m = d.getMonth();
       const inc = finances.incomes
-        .filter(x => { const dt = new Date(x.date); return dt.getFullYear() === y && dt.getMonth() === m; })
+        .filter(x => { const dt = parseDate(x.date); return dt && dt.getFullYear() === y && dt.getMonth() === m; })
         .reduce((s, x) => s + x.amount, 0);
       const exp = finances.expenses
-        .filter(x => { const dt = new Date(x.date); return dt.getFullYear() === y && dt.getMonth() === m; })
+        .filter(x => { const dt = parseDate(x.date); return dt && dt.getFullYear() === y && dt.getMonth() === m; })
         .reduce((s, x) => s + x.amount, 0);
       result.push({ label: d.toLocaleString('pt-BR', { month: 'short' }), inc, exp, pat: inc - exp });
     }
@@ -369,7 +369,7 @@ export default function FinancialScreen() {
 
   // Alertas de contas vencidas
   const overdueCount = useMemo(() =>
-    finances.expenses.filter(e => e.dueDate && !e.paid && new Date(e.dueDate) < new Date()).length,
+    finances.expenses.filter(e => e.dueDate && !e.paid && isOverdue(e.dueDate)).length,
     [finances.expenses]
   );
 
@@ -469,7 +469,7 @@ export default function FinancialScreen() {
             {/* Últimas movimentações */}
             <Text style={s.sectionTitle}>Últimas Movimentações</Text>
             {[...monthIncomes.slice(-3), ...monthExpenses.slice(-3)]
-              .sort((a, b) => new Date(b.date) - new Date(a.date))
+              .sort((a, b) => parseDate(b.date) - parseDate(a.date))
               .map(item => {
                 const isInc = !!monthIncomes.find(i => i.id === item.id);
                 return (

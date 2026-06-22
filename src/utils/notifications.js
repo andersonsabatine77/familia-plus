@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { parseDate } from './formatters';
 
 // Configura comportamento de notificações recebidas com app em foreground
 Notifications.setNotificationHandler({
@@ -48,7 +49,7 @@ export async function listScheduledNotifications() {
 // alertTime: horário do disparo no formato 'HH:MM' (padrão 09:00)
 export async function scheduleBillAlert(expense, alertDays, alertTime = '09:00') {
   if (!expense.dueDate || expense.paid) return;
-  const due = new Date(expense.dueDate);
+  const due = parseDate(expense.dueDate);
   const [ah, am] = String(alertTime || '09:00').split(':').map(n => parseInt(n, 10) || 0);
 
   for (const days of alertDays) {
@@ -69,7 +70,7 @@ export async function scheduleBillAlert(expense, alertDays, alertTime = '09:00')
 
 // Agenda lembrete para evento do calendário
 export async function scheduleEventAlert(event, minutesBefore = 60) {
-  const eventDate = new Date(event.date);
+  const eventDate = parseDate(event.date);
   if (event.time) {
     const [h, m] = event.time.split(':');
     eventDate.setHours(parseInt(h), parseInt(m), 0, 0);

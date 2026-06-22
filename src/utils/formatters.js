@@ -1,5 +1,17 @@
 // Funções de formatação de dados para exibição
 
+// Converte uma data guardada (ISO completa OU 'YYYY-MM-DD') para Date no fuso LOCAL.
+// Strings só-data são interpretadas como meia-noite local — evita o bug de -1 dia
+// que acontece quando 'YYYY-MM-DD' é lido como UTC (em UTC-3 voltava pro dia anterior).
+export function parseDate(value) {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  const s = String(value).trim();
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return new Date(s); // ISO completa com hora → instante exato
+}
+
 // Formata número como moeda BRL
 export function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', {
@@ -11,14 +23,14 @@ export function formatCurrency(value) {
 // Formata data ISO como dd/mm/aaaa
 export function formatDate(isoString) {
   if (!isoString) return '--/--/----';
-  const d = new Date(isoString);
+  const d = parseDate(isoString);
   return d.toLocaleDateString('pt-BR');
 }
 
 // Formata data para rótulo curto — ex.: "15 jun"
 export function formatDateShort(isoString) {
   if (!isoString) return '';
-  const d = new Date(isoString);
+  const d = parseDate(isoString);
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
@@ -30,7 +42,7 @@ export function formatMonthYear(date) {
 // Calcula idade a partir de data de nascimento (ISO string)
 export function calcAge(birthDateISO) {
   if (!birthDateISO) return 0;
-  const birth = new Date(birthDateISO);
+  const birth = parseDate(birthDateISO);
   const today = new Date();
   let age = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
@@ -38,18 +50,23 @@ export function calcAge(birthDateISO) {
   return age;
 }
 
-// Verifica se uma data ISO está vencida (anterior ao dia de hoje)
-export function isOverdue(isoString) {
-  if (!isoString) return false;
-  return new Date(isoString) < new Date();
+// Zera horas → meia-noite local (para comparar por dia de calendário)
+function startOfDay(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-// Verifica se vence nos próximos N dias
+// Verifica se uma data está vencida (dia anterior a hoje)
+export function isOverdue(isoString) {
+  if (!isoString) return false;
+  return startOfDay(parseDate(isoString)) < startOfDay(new Date());
+}
+
+// Verifica se vence nos próximos N dias (contando por dia de calendário)
 export function isDueWithin(isoString, days) {
   if (!isoString) return false;
-  const target = new Date(isoString);
-  const now = new Date();
-  const diff = (target - now) / (1000 * 60 * 60 * 24);
+  const target = startOfDay(parseDate(isoString));
+  const today = startOfDay(new Date());
+  const diff = (target - today) / (1000 * 60 * 60 * 24);
   return diff >= 0 && diff <= days;
 }
 
@@ -70,7 +87,8 @@ export function monthName(monthIndex) {
 // Filtra lista por mês e ano
 export function filterByMonth(list, dateKey, year, month) {
   return list.filter(item => {
-    const d = new Date(item[dateKey]);
+    const d = parseDate(item[dateKey]);
+    if (!d) return false;
     return d.getFullYear() === year && d.getMonth() === month;
   });
 }

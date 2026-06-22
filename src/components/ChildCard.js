@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { calcAge, formatDate } from '../utils/formatters';
+import { calcAge, formatDate, parseDate } from '../utils/formatters';
 import { spacing, radius, fontSize, fontWeight, elevation } from '../styles/spacing';
 
 // Card principal de filho na listagem
@@ -17,7 +17,7 @@ export function ChildCard({ child, onPress, onDelete }) {
     ...(child.school?.exams || []),
     ...(child.school?.meetings || []),
     ...(child.health?.appointments || []),
-  ].filter(e => new Date(e.date) >= new Date()).length;
+  ].filter(e => { const d = parseDate(e.date); return d && d >= new Date(); }).length;
 
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>

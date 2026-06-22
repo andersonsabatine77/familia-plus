@@ -9,7 +9,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { CalendarEventCard, DayDot } from '../components/CalendarEvent';
 import CustomButton from '../components/CustomButton';
-import { formatMonthYear, formatDate, monthName } from '../utils/formatters';
+import { formatMonthYear, formatDate, monthName, parseDate } from '../utils/formatters';
 import { spacing, radius, fontSize, fontWeight } from '../styles/spacing';
 import { eventCategories } from '../styles/colors';
 import { scheduleEventAlert } from '../utils/notifications';
@@ -96,8 +96,8 @@ function MonthGrid({ year, month, events, onDayPress, colors }) {
   const eventsByDay = useMemo(() => {
     const map = {};
     events.forEach(e => {
-      const d = new Date(e.date);
-      if (d.getFullYear() === year && d.getMonth() === month) {
+      const d = parseDate(e.date);
+      if (d && d.getFullYear() === year && d.getMonth() === month) {
         const day = d.getDate();
         if (!map[day]) map[day] = [];
         map[day].push(e);
@@ -168,16 +168,16 @@ export default function CalendarScreen() {
   // Eventos do mês corrente
   const monthEvents = useMemo(() =>
     events.filter(e => {
-      const d = new Date(e.date);
-      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-    }).sort((a, b) => new Date(a.date) - new Date(b.date)),
+      const d = parseDate(e.date);
+      return d && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }).sort((a, b) => parseDate(a.date) - parseDate(b.date)),
     [events, now]
   );
 
   // Eventos do dia selecionado
   const dayEvents = useMemo(() => {
     if (!selectedDay) return [];
-    return monthEvents.filter(e => new Date(e.date).getDate() === selectedDay);
+    return monthEvents.filter(e => parseDate(e.date).getDate() === selectedDay);
   }, [selectedDay, monthEvents]);
 
   // Todos os eventos filtrados por categoria
