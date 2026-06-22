@@ -9,6 +9,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { CalendarEventCard, DayDot } from '../components/CalendarEvent';
 import CustomButton from '../components/CustomButton';
+import DateField from '../components/DateField';
 import { formatMonthYear, formatDate, monthName, parseDate } from '../utils/formatters';
 import { spacing, radius, fontSize, fontWeight } from '../styles/spacing';
 import { eventCategories } from '../styles/colors';
@@ -46,7 +47,7 @@ function EventForm({ onSave, onClose, colors, initialDate }) {
       <Text style={s.label}>Título *</Text>
       <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder="Ex.: Reunião Escolar" placeholderTextColor={colors.textDisabled} />
       <Text style={s.label}>Data</Text>
-      <TextInput style={s.input} value={date} onChangeText={setDate} placeholder="AAAA-MM-DD" placeholderTextColor={colors.textDisabled} />
+      <DateField value={date} onChange={setDate} placeholder="Selecionar data" />
       <Text style={s.label}>Horário</Text>
       <TextInput style={s.input} value={time} onChangeText={setTime} placeholder="HH:MM" placeholderTextColor={colors.textDisabled} />
       <Text style={s.label}>Categoria</Text>

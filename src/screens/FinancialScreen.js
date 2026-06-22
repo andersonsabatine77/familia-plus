@@ -10,6 +10,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { FinancialCard, SummaryCard } from '../components/FinancialCard';
 import CustomButton from '../components/CustomButton';
+import DateField from '../components/DateField';
 import {
   formatCurrency, formatMonthYear, filterByMonth, sumField,
   groupBy, generateId, parseDate, isOverdue,
@@ -235,24 +236,12 @@ function EntryForm({ type, initialData, onSave, onClose, colors }) {
       />
 
       <Text style={s.label}>Data</Text>
-      <TextInput
-        style={s.input}
-        value={date}
-        onChangeText={setDate}
-        placeholder="AAAA-MM-DD"
-        placeholderTextColor={colors.textDisabled}
-      />
+      <DateField value={date} onChange={setDate} placeholder="Selecionar data" />
 
       {!isIncome && (
         <>
           <Text style={s.label}>Vencimento</Text>
-          <TextInput
-            style={s.input}
-            value={dueDate}
-            onChangeText={setDueDate}
-            placeholder="AAAA-MM-DD"
-            placeholderTextColor={colors.textDisabled}
-          />
+          <DateField value={dueDate} onChange={setDueDate} placeholder="Selecionar vencimento" />
 
           <Text style={s.label}>Categoria</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>

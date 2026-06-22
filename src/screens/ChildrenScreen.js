@@ -9,6 +9,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { ChildCard, EventMiniCard } from '../components/ChildCard';
 import CustomButton from '../components/CustomButton';
+import DateField from '../components/DateField';
 import { formatDate, formatDateShort, generateId } from '../utils/formatters';
 import { spacing, radius, fontSize, fontWeight, elevation } from '../styles/spacing';
 
@@ -39,7 +40,7 @@ function AddChildForm({ onSave, onClose, colors }) {
       <Text style={s.label}>Nome *</Text>
       <TextInput style={s.input} value={name} onChangeText={setName} placeholder="Nome completo" placeholderTextColor={colors.textDisabled} />
       <Text style={s.label}>Data de Nascimento</Text>
-      <TextInput style={s.input} value={birthDate} onChangeText={setBirthDate} placeholder="AAAA-MM-DD" placeholderTextColor={colors.textDisabled} />
+      <DateField value={birthDate} onChange={setBirthDate} placeholder="Selecionar data" />
       <Text style={s.label}>Escola</Text>
       <TextInput style={s.input} value={schoolName} onChangeText={setSchoolName} placeholder="Nome da escola" placeholderTextColor={colors.textDisabled} />
       <Text style={s.label}>Tipo Sanguíneo</Text>
@@ -91,7 +92,7 @@ function SubItemForm({ section, subsection, onSave, onClose, colors }) {
       <Text style={s.label}>{cfg.titleLabel} *</Text>
       <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder={cfg.titleLabel} placeholderTextColor={colors.textDisabled} />
       <Text style={s.label}>Data</Text>
-      <TextInput style={s.input} value={date} onChangeText={setDate} placeholder="AAAA-MM-DD" placeholderTextColor={colors.textDisabled} />
+      <DateField value={date} onChange={setDate} placeholder="Selecionar data" />
       <Text style={s.label}>Horário</Text>
       <TextInput style={s.input} value={time} onChangeText={setTime} placeholder="HH:MM" placeholderTextColor={colors.textDisabled} />
       {subsection === 'medications' && (
