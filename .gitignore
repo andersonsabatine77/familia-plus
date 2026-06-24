@@ -4,3 +4,7 @@ ios/
 *.log
 .DS_Store
 android/
+
+# Build artifacts (APK baixado do CI)
+dist/
+dist-bundle-check/

@@ -73,7 +73,14 @@ const rowStyles = StyleSheet.create({
 // ── Tela principal ────────────────────────────────────────────────────────────
 export default function SettingsScreen() {
   const { colors, isDark } = useTheme();
-  const { family, settings, updateFamily, updateSettings } = useData();
+  const {
+    family, settings, updateFamily, updateSettings,
+    syncEnabled, syncCode, syncStatus, startSyncedFamily, joinSyncedFamily, leaveSyncedFamily,
+  } = useData();
+
+  const [joinModal, setJoinModal] = useState(false);
+  const [joinCode,  setJoinCode]  = useState('');
+  const [syncBusy,  setSyncBusy]  = useState(false);
 
   const [familyModal, setFamilyModal] = useState(false);
   const [editMember,  setEditMember]  = useState(null);
@@ -115,6 +122,58 @@ export default function SettingsScreen() {
       ]
     );
   }, []);
+
+  // ── Sincronização entre celulares ────────────────────────────────────────────
+  const syncStatusLabel = {
+    off: 'Desativada', connecting: 'Conectando…', online: 'Sincronizando ✓', error: 'Sem conexão — tentando…',
+  }[syncStatus] || '';
+
+  const handleCreateFamily = async () => {
+    setSyncBusy(true);
+    try {
+      const code = await startSyncedFamily();
+      Alert.alert(
+        '✅ Família criada!',
+        `Seu código é:\n\n${code}\n\nNo outro celular, abra o Família+ → Configurações → "Entrar com código" e digite esse código. Tudo passa a ser compartilhado em tempo real.`,
+      );
+    } catch (e) {
+      Alert.alert('Erro', e?.message || 'Não foi possível criar a família.');
+    } finally {
+      setSyncBusy(false);
+    }
+  };
+
+  const handleJoinFamily = async () => {
+    if (!joinCode.trim()) return Alert.alert('Atenção', 'Digite o código da família.');
+    setSyncBusy(true);
+    try {
+      await joinSyncedFamily(joinCode);
+      setJoinModal(false);
+      setJoinCode('');
+      Alert.alert('✅ Conectado!', 'Agora vocês compartilham os mesmos dados em tempo real. Os dados deste aparelho foram substituídos pelos da família.');
+    } catch (e) {
+      Alert.alert('Código inválido', e?.message || 'Não foi possível entrar nessa família.');
+    } finally {
+      setSyncBusy(false);
+    }
+  };
+
+  const handleShareCode = async () => {
+    await Share.share({
+      message: `Vamos compartilhar nossa organização no app Família+!\nAbra o app → Configurações → "Entrar com código" e use:\n\n${syncCode}`,
+    });
+  };
+
+  const handleLeaveSync = () => {
+    Alert.alert(
+      'Parar de sincronizar?',
+      'Este aparelho deixa de enviar e receber mudanças. Os dados atuais continuam salvos aqui normalmente.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Parar', style: 'destructive', onPress: () => leaveSyncedFamily() },
+      ],
+    );
+  };
 
   // ── Membro da família ────────────────────────────────────────────────────────
   const openMember = (member) => {
@@ -209,6 +268,44 @@ export default function SettingsScreen() {
           <View style={{ padding: spacing.md }}>
             <ThemeToggle />
           </View>
+        </Section>
+
+        {/* ── Sincronização ── */}
+        <Section title="Compartilhar com a Família" colors={colors}>
+          {!syncEnabled ? (
+            <View style={{ padding: spacing.md }}>
+              <Text style={{ color: colors.text, fontWeight: fontWeight.semibold, marginBottom: spacing.xs }}>
+                ☁️ Sincronização entre celulares
+              </Text>
+              <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>
+                Para usar os mesmos dados em mais de um aparelho, é preciso configurar o Firebase (grátis) uma única vez. O passo a passo está no arquivo README do app, em "Sincronização".
+              </Text>
+            </View>
+          ) : !syncCode ? (
+            <View style={{ padding: spacing.md, gap: spacing.sm }}>
+              <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm, marginBottom: spacing.xs }}>
+                Use os mesmos dados em vários celulares, em tempo real. Crie uma família e compartilhe o código — ou entre em uma já existente.
+              </Text>
+              <CustomButton title="Criar família" variant="primary" onPress={handleCreateFamily} loading={syncBusy} />
+              <CustomButton title="Entrar com código" variant="outline" onPress={() => setJoinModal(true)} />
+            </View>
+          ) : (
+            <>
+              <View style={{ padding: spacing.md }}>
+                <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, letterSpacing: 1 }}>
+                  CÓDIGO DA FAMÍLIA
+                </Text>
+                <Text selectable style={{ color: colors.text, fontSize: 32, fontWeight: fontWeight.bold, letterSpacing: 6, marginVertical: 2 }}>
+                  {syncCode}
+                </Text>
+                <Text style={{ color: syncStatus === 'online' ? colors.success : (syncStatus === 'error' ? colors.error : colors.textSecondary), fontSize: fontSize.sm }}>
+                  {syncStatusLabel}
+                </Text>
+              </View>
+              <SettingRow icon="share-social-outline" label="Compartilhar código"   onPress={handleShareCode} colors={colors} />
+              <SettingRow icon="log-out-outline"       label="Parar de sincronizar"  onPress={handleLeaveSync} colors={colors} danger last />
+            </>
+          )}
         </Section>
 
         {/* ── Família ── */}
@@ -413,6 +510,32 @@ export default function SettingsScreen() {
             <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg }}>
               <CustomButton title="Cancelar" variant="outline" onPress={() => setTimeModal(false)} style={{ flex: 1 }} />
               <CustomButton title="Salvar"   variant="primary" onPress={saveTime}                 style={{ flex: 1 }} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de entrar com código */}
+      <Modal visible={joinModal} transparent animationType="slide" onRequestClose={() => setJoinModal(false)}>
+        <View style={s.modalOverlay}>
+          <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
+            <Text style={s.modalTitle}>Entrar na família</Text>
+            <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm, marginBottom: spacing.md, textAlign: 'center' }}>
+              Digite o código que a outra pessoa criou. Os dados deste aparelho serão substituídos pelos da família.
+            </Text>
+            <TextInput
+              style={[s.input, { backgroundColor: colors.surfaceVariant, color: colors.text, textAlign: 'center', fontSize: 26, letterSpacing: 6, fontWeight: fontWeight.bold }]}
+              value={joinCode}
+              onChangeText={t => setJoinCode(t.toUpperCase())}
+              placeholder="ABC123"
+              placeholderTextColor={colors.textDisabled}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={6}
+            />
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
+              <CustomButton title="Cancelar" variant="outline" onPress={() => setJoinModal(false)} style={{ flex: 1 }} />
+              <CustomButton title="Entrar"   variant="primary" onPress={handleJoinFamily} loading={syncBusy} style={{ flex: 1 }} />
             </View>
           </View>
         </View>

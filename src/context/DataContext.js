@@ -1,9 +1,31 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { loadData, saveData, STORAGE_KEYS, initializeStorage } from '../utils/storage';
 import { generateId } from '../utils/formatters';
 import { scheduleBillAlert, cancelNotification, rescheduleAllBillAlerts } from '../utils/notifications';
+import { firebaseEnabled } from '../firebase/config';
+import {
+  createFamily as fbCreateFamily,
+  joinFamily as fbJoinFamily,
+  subscribeFamily,
+  pushSection,
+  normalizeCode,
+} from '../firebase/sync';
 
 const DataContext = createContext(null);
+
+// Chave local (fora do backup/limpeza) que guarda o código da família sincronizada.
+const SYNC_KEY = '@familia_plus:sync_code';
+
+// Mapeia a chave de storage de cada seção para o nome do campo na nuvem.
+const KEY_TO_SECTION = {
+  [STORAGE_KEYS.FINANCES]:       'finances',
+  [STORAGE_KEYS.CHILDREN]:       'children',
+  [STORAGE_KEYS.SHOPPING]:       'shopping',
+  [STORAGE_KEYS.CALENDAR]:       'calendar',
+  [STORAGE_KEYS.FAMILY]:         'family',
+  [STORAGE_KEYS.SETTINGS]:       'settings',
+  [STORAGE_KEYS.DEFAULT_MARKET]: 'defaultMarket',
+};
 
 export function DataProvider({ children }) {
   const [finances,  setFinances]  = useState({ incomes: [], expenses: [] });
@@ -14,6 +36,15 @@ export function DataProvider({ children }) {
   const [settings,  setSettings]  = useState({ notificationsEnabled: true, billsAlertDays: [1, 3, 7], billsAlertTime: '09:00', whatsappNumbers: ['', '', ''] });
   const [defaultMarketList, setDefaultMarketListState] = useState([]);
   const [loading,   setLoading]   = useState(true);
+
+  // ── Sincronização em nuvem ────────────────────────────────
+  const [syncCode,   setSyncCode]   = useState(null);
+  const [syncStatus, setSyncStatus] = useState('off'); // off | connecting | online | error
+  const syncCodeRef       = useRef(null);   // sempre o código atual (sem refazer callbacks)
+  const applyingRemoteRef = useRef(false);  // evita re-enviar dados que vieram da nuvem
+  const settingsRef       = useRef(settings);
+  useEffect(() => { syncCodeRef.current = syncCode; }, [syncCode]);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
 
   // ── Carregamento inicial ──────────────────────────────────
   useEffect(() => {
@@ -35,13 +66,87 @@ export function DataProvider({ children }) {
       if (fam) setFamily(fam);
       if (set) setSettings(s => ({ ...s, ...set }));
       if (def) setDefaultMarketListState(def);
+      // Restaura a família sincronizada, se já estava pareada.
+      const savedCode = await loadData(SYNC_KEY);
+      if (savedCode && firebaseEnabled) setSyncCode(savedCode);
       setLoading(false);
     })();
   }, []);
 
+  // Aplica os dados que chegaram da nuvem (de OUTRO aparelho) ao estado local,
+  // sem reenviá-los, e reagenda os lembretes de conta deste celular.
+  const applyRemote = useCallback(async (remote) => {
+    if (!remote) return;
+    applyingRemoteRef.current = true;
+    try {
+      if (remote.finances)      { setFinances(remote.finances);                 await saveData(STORAGE_KEYS.FINANCES, remote.finances); }
+      if (remote.children)      { setChildren(remote.children);                 await saveData(STORAGE_KEYS.CHILDREN, remote.children); }
+      if (remote.shopping)      { setShopping(remote.shopping);                 await saveData(STORAGE_KEYS.SHOPPING, remote.shopping); }
+      if (remote.calendar)      { setCalendar(remote.calendar);                 await saveData(STORAGE_KEYS.CALENDAR, remote.calendar); }
+      if (remote.family)        { setFamily(remote.family);                     await saveData(STORAGE_KEYS.FAMILY, remote.family); }
+      if (remote.settings)      { setSettings(s => ({ ...s, ...remote.settings })); await saveData(STORAGE_KEYS.SETTINGS, remote.settings); }
+      if (remote.defaultMarket) { setDefaultMarketListState(remote.defaultMarket); await saveData(STORAGE_KEYS.DEFAULT_MARKET, remote.defaultMarket); }
+
+      const mergedSettings = { ...settingsRef.current, ...(remote.settings || {}) };
+      if (remote.finances?.expenses && mergedSettings.notificationsEnabled) {
+        await rescheduleAllBillAlerts(remote.finances.expenses, mergedSettings);
+      }
+    } finally {
+      applyingRemoteRef.current = false;
+    }
+  }, []);
+
+  // Escuta em tempo real enquanto houver família pareada.
+  useEffect(() => {
+    if (!firebaseEnabled || !syncCode) { setSyncStatus('off'); return; }
+    setSyncStatus('connecting');
+    const unsub = subscribeFamily(syncCode, {
+      onRemote: (data) => { setSyncStatus('online'); applyRemote(data); },
+      onError:  (e)    => { console.warn('[sync] erro de conexão:', e?.message); setSyncStatus('error'); },
+    });
+    return () => unsub && unsub();
+  }, [syncCode, applyRemote]);
+
   // ── Persistência automática por seção ────────────────────
+  // Salva localmente sempre; e envia para a nuvem quando há família pareada
+  // (exceto quando o dado acabou de CHEGAR da nuvem, evitando loop de eco).
   const persist = useCallback(async (key, data) => {
     await saveData(key, data);
+    const code = syncCodeRef.current;
+    if (code && firebaseEnabled && !applyingRemoteRef.current) {
+      const section = KEY_TO_SECTION[key];
+      if (section) {
+        try { await pushSection(code, section, data); }
+        catch (e) { console.warn('[sync] falha ao enviar', section, e?.message); }
+      }
+    }
+  }, []);
+
+  // ── Ações de sincronização (expostas à UI) ───────────────
+  const startSyncedFamily = useCallback(async () => {
+    const allData = {
+      finances, children: children_, shopping, calendar,
+      family, settings, defaultMarket: defaultMarketList,
+    };
+    const code = await fbCreateFamily(allData);
+    await saveData(SYNC_KEY, code);
+    setSyncCode(code);
+    return code;
+  }, [finances, children_, shopping, calendar, family, settings, defaultMarketList]);
+
+  const joinSyncedFamily = useCallback(async (rawCode) => {
+    const code = normalizeCode(rawCode);
+    const remote = await fbJoinFamily(code);   // lança erro se o código não existir
+    await applyRemote(remote);
+    await saveData(SYNC_KEY, code);
+    setSyncCode(code);
+    return code;
+  }, [applyRemote]);
+
+  const leaveSyncedFamily = useCallback(async () => {
+    await saveData(SYNC_KEY, null);
+    setSyncCode(null);
+    setSyncStatus('off');
   }, []);
 
   // ═══════════════════════════════════════════════════════════
@@ -292,6 +397,9 @@ export function DataProvider({ children }) {
     addEvent, updateEvent, deleteEvent,
     // config
     updateFamily, updateSettings,
+    // sincronização
+    syncEnabled: firebaseEnabled, syncCode, syncStatus,
+    startSyncedFamily, joinSyncedFamily, leaveSyncedFamily,
   }), [
     finances, children_, shopping, calendar, family, settings, loading,
     defaultMarketList,
@@ -303,6 +411,8 @@ export function DataProvider({ children }) {
     saveDefaultMarketList, loadDefaultMarketList,
     addEvent, updateEvent, deleteEvent,
     updateFamily, updateSettings,
+    syncCode, syncStatus,
+    startSyncedFamily, joinSyncedFamily, leaveSyncedFamily,
   ]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

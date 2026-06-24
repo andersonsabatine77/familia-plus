@@ -76,6 +76,60 @@ npx expo start --android
 
 ---
 
+## ☁️ Sincronização entre celulares (compartilhar com a família)
+
+Por padrão o app é **100% offline**. Se você quiser que **duas ou mais pessoas
+vejam e editem os mesmos dados em tempo real** (e os lembretes de conta/consulta/
+remédio toquem em todos os aparelhos), basta ligar a sincronização com o
+**Firebase** — gratuito, sem cartão.
+
+### Como funciona
+- Um aparelho **cria uma família** e recebe um **código** (ex: `PNK7QD`).
+- O outro aparelho usa **"Entrar com código"** e digita esse código.
+- A partir daí, tudo que um adiciona aparece no outro automaticamente, nos dois
+  sentidos. Cada celular agenda seus próprios lembretes a partir dos dados
+  sincronizados — por isso as notificações funcionam em todos eles.
+
+> O código da família é a "senha". Compartilhe só com quem deve ter acesso.
+
+### Configuração (uma única vez, ~5 minutos)
+
+1. Acesse <https://console.firebase.google.com> e **crie um projeto** (pode
+   desativar o Google Analytics).
+2. Menu **Build → Firestore Database → Criar banco de dados** → modo de
+   **produção** → região **`southamerica-east1`**.
+3. ⚙ **Configurações do projeto → Seus apps →** ícone **`</>` (Web)** → registre
+   um app. O Firebase mostra um objeto `firebaseConfig` com 6 valores.
+4. Cole esses 6 valores em **`src/firebase/config.js`**, substituindo os
+   `COLE_AQUI_...`.
+5. No Firestore, abra a aba **Regras** e cole exatamente isto, depois
+   **Publicar**:
+
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /families/{familyId} {
+         allow read, write: if true;
+       }
+     }
+   }
+   ```
+
+6. Gere o APK novamente (push no GitHub aciona o build) e instale a nova versão.
+   Pronto: em **Configurações → Compartilhar com a Família** aparecem os botões
+   **Criar família** e **Entrar com código**.
+
+> Enquanto `config.js` estiver com os valores `COLE_AQUI`, o app continua
+> funcionando normalmente offline e a seção de sincronização fica oculta/avisa
+> que o Firebase não está configurado.
+
+### Limites do plano grátis (Spark)
+Mais que suficiente para uma família: 1 GB armazenado, 50 mil leituras e 20 mil
+escritas por dia. Um uso familiar normal fica numa fração disso.
+
+---
+
 ## 🏗️ Estrutura do Projeto
 
 ```
