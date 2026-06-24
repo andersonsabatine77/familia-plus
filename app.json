@@ -26,6 +26,14 @@
         "VIBRATE"
       ]
     },
+    "ios": {
+      "bundleIdentifier": "com.familiaplus.app",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["whatsapp"]
+      }
+    },
     "web": {
       "favicon": "./assets/icons/favicon.png"
     },

@@ -130,6 +130,33 @@ escritas por dia. Um uso familiar normal fica numa fração disso.
 
 ---
 
+## 🍎 Versão para iOS (iPhone)
+
+O mesmo código roda em iOS — Firebase, sincronização, notificações e WhatsApp
+funcionam no iPhone. O projeto **já está configurado** para iOS
+(`ios.bundleIdentifier = com.familiaplus.app`, esquema `whatsapp` liberado no
+Info.plist, perfis de build em `eas.json`).
+
+**Diferença em relação ao Android:** a Apple não permite "sideload" de um arquivo
+solto. Para instalar num iPhone de verdade é preciso uma conta **Apple Developer
+(US$ 99/ano)**. Com ela, o build é feito na nuvem (EAS — não precisa de Mac) e a
+distribuição é via **TestFlight**.
+
+Quando tiver a conta Apple, basta:
+
+```bash
+npm install -g eas-cli
+eas login                       # conta Expo: andersonsabatine
+eas build -p ios --profile production
+# depois, enviar para o TestFlight:
+eas submit -p ios --latest
+```
+
+> Build grátis só de **simulador** (roda no Xcode/Mac, não em iPhone real):
+> `eas build -p ios --profile preview` (perfil com `"simulator": true`).
+
+---
+
 ## 🏗️ Estrutura do Projeto
 
 ```
