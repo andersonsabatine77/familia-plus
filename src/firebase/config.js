@@ -20,12 +20,12 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { initializeFirestore } from 'firebase/firestore';
 
 export const firebaseConfig = {
-  apiKey:            'COLE_AQUI_apiKey',
-  authDomain:        'COLE_AQUI_authDomain',
-  projectId:         'COLE_AQUI_projectId',
-  storageBucket:     'COLE_AQUI_storageBucket',
-  messagingSenderId: 'COLE_AQUI_messagingSenderId',
-  appId:             'COLE_AQUI_appId',
+  apiKey:            'AIzaSyAzd7nZtU8stgFNtb8pUvcgChFl43J7fgU',
+  authDomain:        'familia-plus-3b061.firebaseapp.com',
+  projectId:         'familia-plus-3b061',
+  storageBucket:     'familia-plus-3b061.firebasestorage.app',
+  messagingSenderId: '1023450701057',
+  appId:             '1:1023450701057:web:2d6896f7ace6e43ce2cf00',
 };
 
 // Sincronização só liga quando as chaves reais foram coladas.
