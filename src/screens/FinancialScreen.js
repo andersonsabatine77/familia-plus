@@ -190,6 +190,7 @@ function EntryForm({ type, initialData, onSave, onClose, colors }) {
   const [date,        setDate]        = useState(initialData?.date ? initialData.date.slice(0, 10) : new Date().toISOString().slice(0, 10));
   const [dueDate,     setDueDate]     = useState(initialData?.dueDate ? initialData.dueDate.slice(0, 10) : '');
   const [category,    setCategory]    = useState(initialData?.category ?? 'other');
+  const [categoryCustom, setCategoryCustom] = useState(initialData?.categoryCustom ?? '');
   const [recurring,   setRecurring]   = useState(initialData?.recurring ?? false);
   const [incomeType,  setIncomeType]  = useState(initialData?.type ?? 'salary');
 
@@ -206,7 +207,14 @@ function EntryForm({ type, initialData, onSave, onClose, colors }) {
       date: date || new Date().toISOString(),
       ...(isIncome
         ? { type: incomeType, recurring }
-        : { type: initialData?.type ?? 'dynamic', category, dueDate: dueDate || null, recurring, paid: initialData?.paid ?? false }
+        : {
+            type: initialData?.type ?? 'dynamic',
+            category,
+            categoryCustom: category === 'other' ? categoryCustom.trim() : '',
+            dueDate: dueDate || null,
+            recurring,
+            paid: initialData?.paid ?? false,
+          }
       ),
     });
     onClose();
@@ -251,6 +259,16 @@ function EntryForm({ type, initialData, onSave, onClose, colors }) {
               </TouchableOpacity>
             ))}
           </ScrollView>
+
+          {category === 'other' && (
+            <TextInput
+              style={s.input}
+              value={categoryCustom}
+              onChangeText={setCategoryCustom}
+              placeholder="Nome do tipo (ex.: Pets, Reforma...)"
+              placeholderTextColor={colors.textDisabled}
+            />
+          )}
         </>
       )}
 

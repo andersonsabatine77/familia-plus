@@ -15,12 +15,14 @@ import { buildMarketListMessage, sendWhatsApp } from '../utils/whatsapp';
 import { spacing, radius, fontSize, fontWeight } from '../styles/spacing';
 import { shoppingCategories } from '../styles/colors';
 
-// ── Formulário de item de mercado ────────────────────────────────────────────
-function MarketItemForm({ onSave, onClose, colors }) {
-  const [name,     setName]     = useState('');
-  const [qty,      setQty]      = useState('1');
-  const [price,    setPrice]    = useState('');
-  const [category, setCategory] = useState('other');
+// ── Formulário de item de mercado (cadastro e edição) ────────────────────────
+function MarketItemForm({ initialData, onSave, onClose, colors }) {
+  const isEdit = !!initialData;
+  const [name,     setName]     = useState(initialData?.name ?? '');
+  const [qty,      setQty]      = useState(String(initialData?.quantity ?? '1'));
+  const [price,    setPrice]    = useState(initialData?.estimatedPrice ? String(initialData.estimatedPrice) : '');
+  const [category, setCategory] = useState(initialData?.category ?? 'other');
+  const [categoryCustom, setCategoryCustom] = useState(initialData?.categoryCustom ?? '');
   const s = formStyles(colors);
 
   const handleSave = () => {
@@ -30,13 +32,14 @@ function MarketItemForm({ onSave, onClose, colors }) {
       quantity: parseInt(qty) || 1,
       estimatedPrice: Number(price) || 0,
       category,
+      categoryCustom: category === 'other' ? categoryCustom.trim() : '',
     });
     onClose();
   };
 
   return (
     <View>
-      <Text style={s.title}>🛒 Novo Item</Text>
+      <Text style={s.title}>{isEdit ? '✏️ Editar Item' : '🛒 Novo Item'}</Text>
       <Text style={s.label}>Nome *</Text>
       <TextInput style={s.input} value={name} onChangeText={setName} placeholder="Ex.: Leite" placeholderTextColor={colors.textDisabled} />
       <Text style={s.label}>Quantidade</Text>
@@ -56,9 +59,18 @@ function MarketItemForm({ onSave, onClose, colors }) {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      {category === 'other' && (
+        <TextInput
+          style={s.input}
+          value={categoryCustom}
+          onChangeText={setCategoryCustom}
+          placeholder="Nome da categoria (ex.: Bazar, Farmácia...)"
+          placeholderTextColor={colors.textDisabled}
+        />
+      )}
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
         <CustomButton title="Cancelar" variant="outline" onPress={onClose} style={{ flex: 1 }} />
-        <CustomButton title="Adicionar" variant="primary" onPress={handleSave} style={{ flex: 1 }} />
+        <CustomButton title={isEdit ? 'Salvar' : 'Adicionar'} variant="primary" onPress={handleSave} style={{ flex: 1 }} />
       </View>
     </View>
   );
@@ -120,7 +132,7 @@ export default function ShoppingScreen() {
   const { colors } = useTheme();
   const {
     shopping,
-    addMarketItem, toggleMarketItem, deleteMarketItem, clearCheckedMarketItems,
+    addMarketItem, toggleMarketItem, updateMarketItem, deleteMarketItem, clearCheckedMarketItems,
     addHouseItem, updateHouseItem, deleteHouseItem,
     family,
     defaultMarketList, saveDefaultMarketList, loadDefaultMarketList,
@@ -128,7 +140,11 @@ export default function ShoppingScreen() {
 
   const [tab,      setTab]      = useState('market'); // market | house
   const [modal,    setModal]    = useState(null);     // null | 'market' | 'house'
+  const [editMarket, setEditMarket] = useState(null); // item de mercado em edição
   const [filterCat,setFilterCat]= useState('all');
+
+  const closeModal = () => { setModal(null); setEditMarket(null); };
+  const openAdd    = (which) => { setEditMarket(null); setModal(which); };
 
   const s = buildStyles(colors);
 
@@ -167,7 +183,7 @@ export default function ShoppingScreen() {
       {/* Header */}
       <View style={s.header}>
         <Text style={s.headerTitle}>🛍️ Compras</Text>
-        <TouchableOpacity style={s.addBtn} onPress={() => setModal(tab)}>
+        <TouchableOpacity style={s.addBtn} onPress={() => openAdd(tab)}>
           <Ionicons name="add" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -241,7 +257,7 @@ export default function ShoppingScreen() {
               <View style={s.emptyState}>
                 <Ionicons name="cart-outline" size={60} color={colors.textDisabled} />
                 <Text style={s.emptyTitle}>Lista vazia</Text>
-                <CustomButton title="Adicionar Item" variant="primary" onPress={() => setModal('market')} style={{ marginTop: spacing.md }} />
+                <CustomButton title="Adicionar Item" variant="primary" onPress={() => openAdd('market')} style={{ marginTop: spacing.md }} />
               </View>
             ) : (
               filteredMarket.map(item => (
@@ -249,6 +265,7 @@ export default function ShoppingScreen() {
                   key={item.id}
                   item={item}
                   onToggle={toggleMarketItem}
+                  onEdit={() => { setEditMarket(item); setModal('market'); }}
                   onDelete={deleteMarketItem}
                 />
               ))
@@ -349,7 +366,7 @@ export default function ShoppingScreen() {
             title="Adicionar Item"
             variant="primary"
             icon={<Ionicons name="add" size={18} color="#fff" />}
-            onPress={() => setModal('house')}
+            onPress={() => openAdd('house')}
             style={{ marginBottom: spacing.md }}
           />
 
@@ -377,7 +394,7 @@ export default function ShoppingScreen() {
       )}
 
       {/* Modal de adição */}
-      <Modal visible={!!modal} transparent animationType="slide" onRequestClose={() => setModal(null)}>
+      <Modal visible={!!modal} transparent animationType="slide" onRequestClose={closeModal}>
         <View style={s.modalOverlay}>
           <ScrollView
             style={[s.modalSheet, { backgroundColor: colors.surface }]}
@@ -385,10 +402,15 @@ export default function ShoppingScreen() {
             keyboardShouldPersistTaps="handled"
           >
             {modal === 'market' && (
-              <MarketItemForm colors={colors} onClose={() => setModal(null)} onSave={addMarketItem} />
+              <MarketItemForm
+                colors={colors}
+                initialData={editMarket}
+                onClose={closeModal}
+                onSave={editMarket ? (d) => updateMarketItem(editMarket.id, d) : addMarketItem}
+              />
             )}
             {modal === 'house' && (
-              <HouseItemForm colors={colors} onClose={() => setModal(null)} onSave={addHouseItem} />
+              <HouseItemForm colors={colors} onClose={closeModal} onSave={addHouseItem} />
             )}
           </ScrollView>
         </View>

@@ -28,6 +28,7 @@ export const lightColors = {
   catEducation: '#3F51B5',
   catTransport: '#00BCD4',
   catLeisure: '#9C27B0',
+  catHome: '#8D6E63',
   catOther: '#607D8B',
 
   // Categorias de eventos do calendário
@@ -70,6 +71,7 @@ export const darkColors = {
   catEducation: '#7986CB',
   catTransport: '#4DD0E1',
   catLeisure: '#CE93D8',
+  catHome: '#A1887F',
   catOther: '#90A4AE',
 
   evtBill: '#FF8FA3',
@@ -90,6 +92,7 @@ export const expenseCategories = [
   { key: 'education',  label: 'Educação',    icon: 'school',       colorKey: 'catEducation' },
   { key: 'transport',  label: 'Transporte',  icon: 'car',          colorKey: 'catTransport' },
   { key: 'leisure',    label: 'Lazer',       icon: 'game-controller', colorKey: 'catLeisure' },
+  { key: 'home',       label: 'Casa',        icon: 'home',         colorKey: 'catHome' },
   { key: 'other',      label: 'Outros',      icon: 'ellipsis-horizontal', colorKey: 'catOther' },
 ];
 
@@ -108,5 +111,7 @@ export const shoppingCategories = [
   { key: 'dairy',   label: 'Laticínios', icon: 'water' },
   { key: 'meat',    label: 'Carnes',     icon: 'restaurant' },
   { key: 'drinks',  label: 'Bebidas',    icon: 'cafe' },
+  { key: 'hygiene', label: 'Higiene',    icon: 'body' },
+  { key: 'cleaning',label: 'Limpeza',    icon: 'sparkles' },
   { key: 'other',   label: 'Outros',     icon: 'basket' },
 ];

@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Modal, TextInput, Alert, FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
@@ -114,6 +114,7 @@ function SubItemForm({ section, subsection, onSave, onClose, colors }) {
 // ── Detalhe do filho ─────────────────────────────────────────────────────────
 function ChildDetail({ child, onClose, colors }) {
   const { addChildSubItem, deleteChildSubItem } = useData();
+  const insets = useSafeAreaInsets();
   const [tab,       setTab]       = useState('school'); // school | health | activities
   const [subModal,  setSubModal]  = useState(null);     // { section, subsection }
   const s = detailStyles(colors);
@@ -169,7 +170,7 @@ function ChildDetail({ child, onClose, colors }) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header do detalhe */}
-      <View style={[s.detailHeader, { backgroundColor: colors.primary }]}>
+      <View style={[s.detailHeader, { backgroundColor: colors.primary, paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={onClose} hitSlop={8}>
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>

@@ -7,11 +7,12 @@ import { spacing, radius, fontSize, fontWeight } from '../styles/spacing';
 import { shoppingCategories } from '../styles/colors';
 
 // Item de lista de mercado com checkbox
-export function MarketItem({ item, onToggle, onDelete }) {
+export function MarketItem({ item, onToggle, onEdit, onDelete }) {
   const { colors } = useTheme();
   const s = buildStyles(colors);
 
   const cat = shoppingCategories.find(c => c.key === item.category);
+  const catLabel = item.category === 'other' && item.categoryCustom ? item.categoryCustom : cat?.label;
   const total = (item.estimatedPrice || 0) * (item.quantity || 1);
 
   return (
@@ -32,10 +33,17 @@ export function MarketItem({ item, onToggle, onDelete }) {
         <Text style={[s.name, item.checked && s.nameChecked]}>{item.name}</Text>
         <Text style={s.meta}>
           {item.quantity}x{item.estimatedPrice ? ` · ${formatCurrency(item.estimatedPrice)} un.` : ''}
+          {catLabel ? ` · ${catLabel}` : ''}
         </Text>
       </View>
 
       {total > 0 && <Text style={[s.total, item.checked && { color: colors.textDisabled }]}>{formatCurrency(total)}</Text>}
+
+      {onEdit && (
+        <TouchableOpacity onPress={() => onEdit(item)} hitSlop={8}>
+          <Ionicons name="pencil-outline" size={18} color={colors.primary} />
+        </TouchableOpacity>
+      )}
 
       {onDelete && (
         <TouchableOpacity onPress={() => onDelete(item.id)} hitSlop={8}>

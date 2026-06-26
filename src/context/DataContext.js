@@ -292,6 +292,15 @@ export function DataProvider({ children }) {
     await persist(STORAGE_KEYS.SHOPPING, next);
   }, [shopping]);
 
+  const updateMarketItem = useCallback(async (id, data) => {
+    const next = {
+      ...shopping,
+      marketList: shopping.marketList.map(i => i.id === id ? { ...i, ...data } : i),
+    };
+    setShopping(next);
+    await persist(STORAGE_KEYS.SHOPPING, next);
+  }, [shopping]);
+
   const deleteMarketItem = useCallback(async (id) => {
     const next = { ...shopping, marketList: shopping.marketList.filter(i => i.id !== id) };
     setShopping(next);
@@ -390,7 +399,7 @@ export function DataProvider({ children }) {
     // filhos
     addChild, updateChild, deleteChild, addChildSubItem, deleteChildSubItem,
     // compras
-    addMarketItem, toggleMarketItem, deleteMarketItem, clearCheckedMarketItems,
+    addMarketItem, toggleMarketItem, updateMarketItem, deleteMarketItem, clearCheckedMarketItems,
     addHouseItem, updateHouseItem, deleteHouseItem,
     saveDefaultMarketList, loadDefaultMarketList,
     // calendário
@@ -406,7 +415,7 @@ export function DataProvider({ children }) {
     addIncome, updateIncome, deleteIncome,
     addExpense, updateExpense, deleteExpense, toggleExpensePaid,
     addChild, updateChild, deleteChild, addChildSubItem, deleteChildSubItem,
-    addMarketItem, toggleMarketItem, deleteMarketItem, clearCheckedMarketItems,
+    addMarketItem, toggleMarketItem, updateMarketItem, deleteMarketItem, clearCheckedMarketItems,
     addHouseItem, updateHouseItem, deleteHouseItem,
     saveDefaultMarketList, loadDefaultMarketList,
     addEvent, updateEvent, deleteEvent,

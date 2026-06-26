@@ -17,6 +17,10 @@ export function FinancialCard({ item, type, onPress, onEdit, onDelete, onToggleP
 
   const cat = expenseCategories.find(c => c.key === item.category);
   const catColor = cat ? colors[cat.colorKey] : colors.textSecondary;
+  // Nome do tipo: usa o nome personalizado quando a categoria é "Outros"
+  const catLabel = isExpense
+    ? (item.category === 'other' && item.categoryCustom ? item.categoryCustom : cat?.label)
+    : null;
 
   return (
     <TouchableOpacity style={[s.card, overdue && s.overdueCard]} onPress={onPress} activeOpacity={0.85}>
@@ -34,6 +38,7 @@ export function FinancialCard({ item, type, onPress, onEdit, onDelete, onToggleP
         <Text style={s.description} numberOfLines={1}>{item.description}</Text>
         <Text style={s.meta}>
           {formatDate(item.date)}
+          {catLabel ? ` · ${catLabel}` : ''}
           {item.dueDate ? ` · Vence ${formatDate(item.dueDate)}` : ''}
           {item.recurring ? ' · 🔄 Recorrente' : ''}
         </Text>
