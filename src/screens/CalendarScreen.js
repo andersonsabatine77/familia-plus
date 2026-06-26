@@ -88,10 +88,14 @@ function MonthGrid({ year, month, events, onDayPress, colors }) {
   const daysInMonth  = new Date(year, month + 1, 0).getDate();
   const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0=Dom
 
-  // Monta grade com células vazias no início
+  // Monta grade com células vazias no início e completa a última semana,
+  // depois quebra em semanas de 7 (linhas) — evita o bug de wrap por %
   const cells = [];
   for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  while (cells.length % 7 !== 0) cells.push(null);
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
   // Agrupa eventos por dia
   const eventsByDay = useMemo(() => {
@@ -120,30 +124,34 @@ function MonthGrid({ year, month, events, onDayPress, colors }) {
         ))}
       </View>
 
-      {/* Grade de dias */}
-      <View style={s.grid}>
-        {cells.map((day, idx) => (
-          <TouchableOpacity
-            key={idx}
-            style={[
-              s.cell,
-              day && isToday(day) && s.todayCell,
-            ]}
-            onPress={() => day && onDayPress(day)}
-            disabled={!day}
-            activeOpacity={0.7}
-          >
-            {day ? (
-              <>
-                <Text style={[s.dayNum, isToday(day) && s.todayNum]}>{day}</Text>
-                <View style={s.dots}>
-                  {(eventsByDay[day] || []).slice(0, 3).map((e, i) => (
-                    <DayDot key={i} category={e.category} colors={colors} />
-                  ))}
-                </View>
-              </>
-            ) : null}
-          </TouchableOpacity>
+      {/* Grade de dias — uma linha por semana */}
+      <View>
+        {weeks.map((week, wi) => (
+          <View key={wi} style={s.weekRow}>
+            {week.map((day, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={[
+                  s.cell,
+                  day && isToday(day) && s.todayCell,
+                ]}
+                onPress={() => day && onDayPress(day)}
+                disabled={!day}
+                activeOpacity={0.7}
+              >
+                {day ? (
+                  <>
+                    <Text style={[s.dayNum, isToday(day) && s.todayNum]}>{day}</Text>
+                    <View style={s.dots}>
+                      {(eventsByDay[day] || []).slice(0, 3).map((e, i) => (
+                        <DayDot key={i} category={e.category} colors={colors} />
+                      ))}
+                    </View>
+                  </>
+                ) : null}
+              </TouchableOpacity>
+            ))}
+          </View>
         ))}
       </View>
     </View>
@@ -381,9 +389,9 @@ const gridStyles = (colors) =>
   StyleSheet.create({
     weekHeader: { flexDirection: 'row', backgroundColor: colors.primary + '22', paddingVertical: spacing.xs },
     weekDay: { flex: 1, textAlign: 'center', fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: colors.primary },
-    grid: { flexDirection: 'row', flexWrap: 'wrap' },
+    weekRow: { flexDirection: 'row' },
     cell: {
-      width: `${100 / 7}%`,
+      flex: 1,
       aspectRatio: 1,
       alignItems: 'center',
       justifyContent: 'flex-start',
