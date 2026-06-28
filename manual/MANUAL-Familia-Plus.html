@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Manual — Família+</title>
+<style>
+  :root{
+    --roxo:#6C63FF; --roxo-claro:#9C95FF; --roxo-fundo:#F0EFFF;
+    --rosa:#FF6584; --verde:#4CAF50; --vermelho:#F44336; --amarelo:#FF9800;
+    --azul:#2196F3; --acento:#43C6AC; --marrom:#8D6E63;
+    --texto:#222; --texto2:#666; --borda:#E6E6F0; --card:#FFF;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:var(--texto); font-size:13px; line-height:1.6; }
+
+  /* CAPA */
+  .capa{
+    height:1020px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; background:linear-gradient(160deg,#6C63FF 0%,#4A42CC 100%); color:#fff;
+    page-break-after:always; padding:60px;
+  }
+  .capa .emoji{ font-size:120px; line-height:1; margin-bottom:20px; }
+  .capa h1{ font-size:64px; font-weight:800; letter-spacing:-1px; }
+  .capa .sub{ font-size:22px; opacity:.92; margin-top:14px; font-weight:300; }
+  .capa .tagline{ margin-top:40px; font-size:16px; opacity:.85; max-width:560px; }
+  .capa .versao{ margin-top:60px; font-size:14px; opacity:.8; border:1px solid rgba(255,255,255,.4); padding:8px 20px; border-radius:30px; }
+
+  /* PÁGINAS */
+  .pag{ padding:48px 56px; page-break-after:always; }
+  .pag:last-child{ page-break-after:auto; }
+
+  h2{ color:var(--roxo); font-size:30px; font-weight:800; margin-bottom:6px; padding-bottom:12px; border-bottom:3px solid var(--roxo-fundo); display:flex; align-items:center; gap:12px; }
+  h2 .ic{ font-size:32px; }
+  h3{ color:var(--texto); font-size:18px; font-weight:700; margin:24px 0 8px; }
+  h4{ color:var(--roxo); font-size:14px; font-weight:700; margin:16px 0 4px; text-transform:uppercase; letter-spacing:.5px; }
+  p{ margin-bottom:10px; color:var(--texto); }
+  .lead{ font-size:15px; color:var(--texto2); margin:10px 0 18px; }
+
+  ul,ol{ margin:8px 0 14px 22px; }
+  li{ margin-bottom:6px; }
+
+  .card{ background:var(--card); border:1px solid var(--borda); border-radius:14px; padding:18px 20px; margin:14px 0; box-shadow:0 2px 8px rgba(108,99,255,.06); }
+  .card h3{ margin-top:0; }
+
+  .box{ border-radius:12px; padding:14px 18px; margin:14px 0; font-size:13px; }
+  .box.dica{ background:#E9FBF3; border-left:4px solid var(--verde); }
+  .box.aviso{ background:#FFF4E5; border-left:4px solid var(--amarelo); }
+  .box.info{ background:var(--roxo-fundo); border-left:4px solid var(--roxo); }
+
+  .passos{ counter-reset:p; list-style:none; margin-left:0; }
+  .passos li{ counter-increment:p; position:relative; padding:8px 0 8px 44px; margin-bottom:4px; }
+  .passos li::before{ content:counter(p); position:absolute; left:0; top:6px; width:28px; height:28px; background:var(--roxo); color:#fff; border-radius:50%; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:13px; }
+
+  .tag{ display:inline-block; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; color:#fff; margin:2px 4px 2px 0; }
+
+  table{ width:100%; border-collapse:collapse; margin:12px 0; font-size:12.5px; }
+  th{ background:var(--roxo); color:#fff; text-align:left; padding:9px 12px; font-weight:600; }
+  td{ padding:9px 12px; border-bottom:1px solid var(--borda); vertical-align:top; }
+  tr:nth-child(even) td{ background:#FAFAFE; }
+
+  .sumario li{ font-size:15px; margin-bottom:10px; }
+  .sumario .n{ color:var(--roxo); font-weight:800; margin-right:10px; }
+
+  .footer{ text-align:center; color:var(--texto2); font-size:11px; margin-top:30px; padding-top:14px; border-top:1px solid var(--borda); }
+</style>
+</head>
+<body>
+
+<!-- CAPA -->
+<div class="capa">
+  <div class="emoji">👨‍👩‍👧‍👦</div>
+  <h1>Família+</h1>
+  <div class="sub">Manual do Aplicativo</div>
+  <div class="tagline">Gerencie finanças, filhos, compras e o calendário da sua família em um só lugar — com sincronização em tempo real entre celulares.</div>
+  <div class="versao">Versão 1.0 · Android</div>
+</div>
+
+<!-- SUMÁRIO -->
+<div class="pag">
+  <h2><span class="ic">📖</span> Sumário</h2>
+  <ol class="sumario" style="list-style:none; margin-left:0;">
+    <li><span class="n">1</span> Apresentação &amp; primeiros passos</li>
+    <li><span class="n">2</span> 💰 Finanças — receitas, despesas e gráficos</li>
+    <li><span class="n">3</span> 👶 Filhos — escola, saúde e atividades</li>
+    <li><span class="n">4</span> 🛒 Compras — mercado e itens para casa</li>
+    <li><span class="n">5</span> 📅 Calendário — eventos e lembretes</li>
+    <li><span class="n">6</span> ☁️ Sincronização entre celulares</li>
+    <li><span class="n">7</span> 🔔 Notificações</li>
+    <li><span class="n">8</span> ⚙️ Configurações, backup e dados</li>
+    <li><span class="n">9</span> ❓ Perguntas frequentes</li>
+  </ol>
+
+  <div class="box info">
+    <strong>Como usar este manual:</strong> cada seção corresponde a uma aba do app, na barra inferior. Você pode ler na ordem ou ir direto à parte que precisar.
+  </div>
+</div>
+
+<!-- 1. APRESENTAÇÃO -->
+<div class="pag">
+  <h2><span class="ic">1</span> Apresentação &amp; primeiros passos</h2>
+  <p class="lead">O Família+ reúne a organização do dia a dia da família em quatro áreas, mais as configurações.</p>
+
+  <div class="card">
+    <h3>As 4 abas principais</h3>
+    <table>
+      <tr><th>Aba</th><th>Para quê serve</th></tr>
+      <tr><td>💰 <b>Finanças</b></td><td>Controlar receitas, despesas, contas a vencer e ver gráficos.</td></tr>
+      <tr><td>👶 <b>Filhos</b></td><td>Guardar dados de escola, saúde e atividades de cada filho.</td></tr>
+      <tr><td>🛒 <b>Compras</b></td><td>Lista de mercado e lista de itens para casa.</td></tr>
+      <tr><td>📅 <b>Calendário</b></td><td>Eventos do mês com cores por categoria.</td></tr>
+    </table>
+    <p>E a aba <b>⚙️ Configurações</b> cuida de tema, membros da família, notificações, sincronização e backup.</p>
+  </div>
+
+  <h3>Funciona offline</h3>
+  <p>Tudo é salvo no próprio celular. Você pode usar o app sem internet — os dados ficam guardados localmente. Se ativar a sincronização (seção 6), os dados também passam a ser compartilhados entre celulares.</p>
+
+  <div class="box dica">
+    <strong>Dica:</strong> ao abrir o app pela primeira vez, ele já vem com alguns dados de exemplo. Você pode editá-los ou apagá-los à vontade em Configurações → “Limpar todos os dados”.
+  </div>
+
+  <h3>Tema claro e escuro</h3>
+  <p>Em Configurações → Aparência, alterne entre tema claro e escuro. A escolha fica salva.</p>
+</div>
+
+<!-- 2. FINANÇAS -->
+<div class="pag">
+  <h2><span class="ic">💰</span> 2. Finanças</h2>
+  <p class="lead">Controle o dinheiro que entra e sai, acompanhe contas a vencer e veja para onde vai seu dinheiro.</p>
+
+  <p>No topo, use as setas <b>‹ ›</b> para navegar entre os meses. A aba tem quatro visões: <b>Visão Geral</b>, <b>Patrimônio</b>, <b>Receitas</b> e <b>Despesas</b>.</p>
+
+  <h3>Receitas (o que entra)</h3>
+  <p>Toque em <b>Nova Receita</b> e informe descrição, valor e data. Marque <b>Recorrente (mensal)</b> para entradas fixas, como o salário.</p>
+
+  <h3>Despesas (o que sai)</h3>
+  <p>Toque em <b>Nova Despesa</b>. Além de descrição, valor e data, você pode definir:</p>
+  <ul>
+    <li><b>Vencimento</b> — gera alertas de conta a vencer.</li>
+    <li><b>Categoria</b> — escolha entre:
+      <span class="tag" style="background:#FF7043">Alimentação</span>
+      <span class="tag" style="background:#E91E63">Saúde</span>
+      <span class="tag" style="background:#3F51B5">Educação</span>
+      <span class="tag" style="background:#00BCD4">Transporte</span>
+      <span class="tag" style="background:#9C27B0">Lazer</span>
+      <span class="tag" style="background:#8D6E63">Casa</span>
+      <span class="tag" style="background:#607D8B">Outros</span>
+    </li>
+    <li><b>Tipo personalizado</b> — ao escolher <b>Outros</b>, aparece um campo para você dar o nome que quiser à categoria (ex.: “Pets”, “Reforma”). Esse nome aparece no card da despesa.</li>
+    <li><b>Recorrente</b> — para contas fixas mensais.</li>
+  </ul>
+
+  <div class="box aviso">
+    <strong>Contas vencidas:</strong> despesas com vencimento passado e não pagas aparecem destacadas em vermelho, com um aviso no topo da tela.
+  </div>
+
+  <h3>Marcar como paga &amp; lembrar no WhatsApp</h3>
+  <p>Em cada despesa há um círculo para marcar como <b>paga</b> e um ícone do <b>WhatsApp</b> para enviar um lembrete da conta para os números cadastrados.</p>
+
+  <h3>Visão Geral e gráficos</h3>
+  <ul>
+    <li><b>Saldo do mês</b> — receitas menos despesas, em destaque.</li>
+    <li><b>Gastos por categoria</b> — gráfico que mostra onde você mais gasta.</li>
+    <li><b>Dica de economia</b> — o app aponta automaticamente sua maior categoria de gasto.</li>
+  </ul>
+
+  <h3>Patrimônio</h3>
+  <p>A aba <b>Patrimônio</b> mostra a evolução dos últimos 6 meses: receitas (verde), despesas (vermelho) e o patrimônio acumulado (linha azul).</p>
+</div>
+
+<!-- 3. FILHOS -->
+<div class="pag">
+  <h2><span class="ic">👶</span> 3. Filhos</h2>
+  <p class="lead">Um cadastro completo para cada filho: escola, saúde e atividades.</p>
+
+  <h3>Cadastrar um filho</h3>
+  <p>Toque no <b>+</b> no topo. Informe nome, data de nascimento, escola e tipo sanguíneo. Depois, toque no card do filho para abrir os detalhes.</p>
+
+  <h3>Dentro do filho — 3 abas</h3>
+  <div class="card">
+    <h4>🏫 Escola</h4>
+    <ul>
+      <li><b>Reuniões</b> — assunto e data.</li>
+      <li><b>Provas</b> — disciplina e data.</li>
+      <li><b>Notas</b> — registro de desempenho.</li>
+    </ul>
+    <h4>💊 Saúde</h4>
+    <ul>
+      <li><b>Consultas</b> — médico/especialidade, data e horário.</li>
+      <li><b>Medicações</b> — nome, dosagem e horário (com lembrete).</li>
+      <li><b>Vacinas</b> — nome e data.</li>
+      <li><b>Alergias e tipo sanguíneo</b> — exibidos no topo para acesso rápido.</li>
+    </ul>
+    <h4>⚽ Atividades</h4>
+    <ul>
+      <li>Atividades extracurriculares: nome, horário e local.</li>
+    </ul>
+  </div>
+
+  <div class="box dica">
+    <strong>Dica:</strong> em cada seção, use o ícone <b>+</b> ao lado do título para adicionar um item, e a lixeira para remover.
+  </div>
+</div>
+
+<!-- 4. COMPRAS -->
+<div class="pag">
+  <h2><span class="ic">🛒</span> 4. Compras</h2>
+  <p class="lead">Duas listas: a de <b>Mercado</b> (do dia a dia) e a de <b>Para Casa</b> (compras maiores planejadas).</p>
+
+  <h3>Lista de Mercado</h3>
+  <ul>
+    <li>Adicione itens com <b>nome, quantidade, preço estimado</b> e <b>categoria</b>:
+      <span class="tag" style="background:#FF7043">Frutas</span>
+      <span class="tag" style="background:#4CAF50">Verduras</span>
+      <span class="tag" style="background:#00BCD4">Laticínios</span>
+      <span class="tag" style="background:#E91E63">Carnes</span>
+      <span class="tag" style="background:#FF9800">Bebidas</span>
+      <span class="tag" style="background:#43C6AC">Higiene</span>
+      <span class="tag" style="background:#2196F3">Limpeza</span>
+      <span class="tag" style="background:#607D8B">Outros</span>
+    </li>
+    <li>Em <b>Outros</b>, você pode digitar uma categoria personalizada.</li>
+    <li><b>Marque os itens comprados</b> na caixinha — uma barra de progresso mostra quanto já foi comprado.</li>
+    <li><b>Editar item</b> — toque no lápis ✏️ do item para alterar nome, quantidade, preço ou categoria.</li>
+    <li><b>Total e restante</b> — o app soma os valores automaticamente.</li>
+  </ul>
+
+  <h4>Lista padrão</h4>
+  <p>Monte a lista que você sempre compra e toque em <b>Definir como Padrão</b>. Depois, em qualquer momento, use <b>Carregar Lista Padrão</b> para recriá-la com um toque.</p>
+
+  <h4>Compartilhar no WhatsApp</h4>
+  <p>O botão <b>Compartilhar via WhatsApp</b> envia a lista formatada, separando o que falta comprar do que já foi, com o total estimado.</p>
+
+  <h3>Lista para Casa</h3>
+  <ul>
+    <li>Itens maiores com <b>prioridade</b> (🔴 Alta, 🟡 Média, 🟢 Baixa) e <b>preço estimado</b>.</li>
+    <li><b>Status</b> que avança a cada toque: Planejado → Em compra → Comprado.</li>
+    <li>Resumo no topo com a contagem por prioridade e o total estimado.</li>
+  </ul>
+</div>
+
+<!-- 5. CALENDÁRIO -->
+<div class="pag">
+  <h2><span class="ic">📅</span> 5. Calendário</h2>
+  <p class="lead">Veja o mês inteiro de relance, com pontos coloridos nos dias que têm eventos.</p>
+
+  <h3>Como usar</h3>
+  <ul>
+    <li>Navegue entre os meses com as setas <b>‹ ›</b>.</li>
+    <li><b>Toque em um dia</b> para ver (e adicionar) os eventos daquele dia.</li>
+    <li>Toque no <b>+</b> no topo para criar um evento: título, data, horário, categoria e descrição.</li>
+  </ul>
+
+  <h3>Categorias de eventos</h3>
+  <p>Cada categoria tem uma cor, mostrada como um pontinho no dia:</p>
+  <p>
+    <span class="tag" style="background:#FF6584">Conta</span>
+    <span class="tag" style="background:#6C63FF">Reunião</span>
+    <span class="tag" style="background:#FF9800">Prova</span>
+    <span class="tag" style="background:#4CAF50">Consulta</span>
+    <span class="tag" style="background:#FF4081">Aniversário</span>
+    <span class="tag" style="background:#607D8B">Outro</span>
+  </p>
+  <p>Abaixo do calendário, há um resumo do mês e um filtro por categoria, além da lista completa dos eventos.</p>
+
+  <div class="box dica">
+    <strong>Dica:</strong> ao criar um evento com horário, o app agenda um lembrete automático para você não esquecer.
+  </div>
+</div>
+
+<!-- 6. SINCRONIZAÇÃO -->
+<div class="pag">
+  <h2><span class="ic">☁️</span> 6. Sincronização entre celulares</h2>
+  <p class="lead">Compartilhe tudo com outra pessoa da família, em tempo real, nos dois sentidos.</p>
+
+  <div class="box info">
+    <strong>Você não precisa criar conta nem configurar nada.</strong> O app já vem conectado a um banco de dados gratuito. Para compartilhar, basta um código.
+  </div>
+
+  <h3>Como compartilhar</h3>
+  <ol class="passos">
+    <li>Nos dois celulares, instale o Família+ (a mesma versão do app).</li>
+    <li>No <b>primeiro</b> celular: Configurações → <b>Compartilhar com a Família</b> → <b>Criar família</b>. Anote o código que aparecer (ex.: <b>PNK7QD</b>).</li>
+    <li>No <b>segundo</b> celular: Configurações → <b>Entrar com código</b> → digite o código.</li>
+    <li>Pronto! O que um adicionar aparece no outro automaticamente.</li>
+  </ol>
+
+  <h3>O que é compartilhado</h3>
+  <p>Tudo: finanças, filhos, compras, calendário, membros e configurações. Os lembretes de contas, consultas e remédios passam a tocar em <b>todos</b> os celulares da família.</p>
+
+  <div class="box aviso">
+    <strong>Atenção:</strong> ao <b>entrar</b> em uma família, os dados daquele celular são substituídos pelos dados da família. Por isso, crie a família no celular que já tem as informações certas, e use “Entrar com código” no outro.
+  </div>
+
+  <h3>Parar de sincronizar</h3>
+  <p>Em Configurações → Compartilhar com a Família → <b>Parar de sincronizar</b>. O celular deixa de enviar e receber mudanças, mas os dados atuais continuam salvos nele.</p>
+
+  <h3>Banco de dados próprio (avançado)</h3>
+  <p>Em Configurações há o botão <b>“Criar banco de dados (passo a passo)”</b>, com o link do Firebase e as instruções — caso você queira hospedar o seu próprio banco separado. Para o uso normal, isso não é necessário.</p>
+</div>
+
+<!-- 7. NOTIFICAÇÕES -->
+<div class="pag">
+  <h2><span class="ic">🔔</span> 7. Notificações</h2>
+  <p class="lead">O app avisa você com antecedência do que importa — mesmo offline.</p>
+
+  <table>
+    <tr><th>Tipo</th><th>Quando avisa</th></tr>
+    <tr><td>💰 Contas a vencer</td><td>1, 3 e 7 dias antes (configurável), no horário que você escolher.</td></tr>
+    <tr><td>📅 Eventos</td><td>Antes do horário do evento.</td></tr>
+    <tr><td>💊 Medicações</td><td>No horário definido para o remédio.</td></tr>
+  </table>
+
+  <h3>Configurar</h3>
+  <p>Em Configurações → <b>Notificações</b>:</p>
+  <ul>
+    <li>Ative ou desative as notificações.</li>
+    <li>Defina o <b>horário do alerta</b> das contas.</li>
+    <li>Escolha a <b>antecedência</b> (1, 3 ou 7 dias).</li>
+  </ul>
+
+  <div class="box dica">
+    <strong>Dica:</strong> como cada celular agenda seus próprios lembretes a partir dos dados sincronizados, todos da família recebem os mesmos avisos.
+  </div>
+</div>
+
+<!-- 8. CONFIGURAÇÕES -->
+<div class="pag">
+  <h2><span class="ic">⚙️</span> 8. Configurações, backup e dados</h2>
+
+  <h3>Membros da família</h3>
+  <p>Cadastre as pessoas da família com nome e WhatsApp. Os números são usados para enviar lembretes e listas.</p>
+
+  <h3>Avisos via WhatsApp</h3>
+  <p>Cadastre até 3 números (formato: 5511999998888 — país + DDD + número). Use o ícone verde para testar o envio.</p>
+
+  <h3>Backup dos dados</h3>
+  <ul>
+    <li><b>Exportar backup</b> — gera um arquivo com todos os seus dados, que você pode salvar ou compartilhar.</li>
+    <li><b>Limpar todos os dados</b> — apaga tudo e restaura os dados de exemplo. Esta ação não pode ser desfeita.</li>
+  </ul>
+
+  <div class="box aviso">
+    <strong>Importante:</strong> faça um backup antes de limpar os dados ou trocar de celular, para não perder informações.
+  </div>
+
+  <h3>Sobre</h3>
+  <p>Na parte “Sobre”, você vê a versão do app e um resumo do que ele faz.</p>
+</div>
+
+<!-- 9. FAQ -->
+<div class="pag">
+  <h2><span class="ic">❓</span> 9. Perguntas frequentes</h2>
+
+  <div class="card">
+    <h3>Preciso de internet para usar?</h3>
+    <p>Não. O app funciona 100% offline. A internet só é necessária para a sincronização entre celulares acontecer em tempo real.</p>
+  </div>
+
+  <div class="card">
+    <h3>A outra pessoa precisa criar uma conta?</h3>
+    <p>Não. Basta instalar o app e usar o <b>código da família</b>. Nenhum cadastro é necessário.</p>
+  </div>
+
+  <div class="card">
+    <h3>Atualizei o app — perco meus dados?</h3>
+    <p>Não. Instalar uma versão nova por cima da atual mantém todos os dados e a sincronização.</p>
+  </div>
+
+  <div class="card">
+    <h3>Tem versão para iPhone?</h3>
+    <p>O app está pronto para iOS. A publicação no iPhone depende de uma conta Apple Developer (anual). Fale com quem montou o app.</p>
+  </div>
+
+  <div class="card">
+    <h3>Como mando a lista de compras para alguém?</h3>
+    <p>Na aba Compras → Mercado, toque em <b>Compartilhar via WhatsApp</b>. A lista vai formatada e com o total.</p>
+  </div>
+
+  <div class="footer">
+    Família+ · Manual do Aplicativo · Versão 1.0<br>
+    Finanças · Filhos · Compras · Calendário — a sua família organizada em um só lugar.
+  </div>
+</div>
+
+</body>
+</html>

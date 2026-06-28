@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Modal, TextInput, Alert, Share, Platform,
+  Modal, TextInput, Alert, Share, Platform, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -81,6 +81,7 @@ export default function SettingsScreen() {
   const [joinModal, setJoinModal] = useState(false);
   const [joinCode,  setJoinCode]  = useState('');
   const [syncBusy,  setSyncBusy]  = useState(false);
+  const [dbHelp,    setDbHelp]    = useState(false);
 
   const [familyModal, setFamilyModal] = useState(false);
   const [editMember,  setEditMember]  = useState(null);
@@ -174,6 +175,22 @@ export default function SettingsScreen() {
       ],
     );
   };
+
+  const openFirebaseSite = () => {
+    Linking.openURL('https://console.firebase.google.com').catch(() =>
+      Alert.alert('Erro', 'Não foi possível abrir o navegador.')
+    );
+  };
+
+  // Passo a passo para criar um banco de dados próprio (Firebase)
+  const dbSteps = [
+    'Acesse console.firebase.google.com e entre com uma conta Google.',
+    'Clique em "Criar um projeto", dê um nome (ex.: familia-plus) e conclua. Pode desativar o Google Analytics.',
+    'No menu Build → Firestore Database, toque em "Criar banco de dados". Escolha o modo de produção e a região southamerica-east1 (São Paulo).',
+    'Em ⚙ Configurações do projeto → Seus apps, clique no ícone </> (Web) e registre um app. O Firebase mostra 6 chaves (firebaseConfig).',
+    'Essas 6 chaves vão no arquivo src/firebase/config.js do app — e então é preciso gerar um novo APK. (Esta parte é técnica, feita por quem monta o app.)',
+    'No Firestore → aba Regras, publique a regra que libera a coleção "families".',
+  ];
 
   // ── Membro da família ────────────────────────────────────────────────────────
   const openMember = (member) => {
@@ -303,9 +320,22 @@ export default function SettingsScreen() {
                 </Text>
               </View>
               <SettingRow icon="share-social-outline" label="Compartilhar código"   onPress={handleShareCode} colors={colors} />
-              <SettingRow icon="log-out-outline"       label="Parar de sincronizar"  onPress={handleLeaveSync} colors={colors} danger last />
+              <SettingRow icon="log-out-outline"       label="Parar de sincronizar"  onPress={handleLeaveSync} colors={colors} />
             </>
           )}
+
+          {/* Ajuda: criar banco de dados próprio + passo a passo */}
+          <TouchableOpacity
+            style={[rowStyles.row, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.divider, borderBottomWidth: 0 }]}
+            onPress={() => setDbHelp(true)}
+            activeOpacity={0.7}
+          >
+            <View style={[rowStyles.iconBg, { backgroundColor: colors.info + '22' }]}>
+              <Ionicons name="server-outline" size={18} color={colors.info} />
+            </View>
+            <Text style={[rowStyles.label, { color: colors.text }]}>Criar banco de dados (passo a passo)</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textDisabled} />
+          </TouchableOpacity>
         </Section>
 
         {/* ── Família ── */}
@@ -538,6 +568,53 @@ export default function SettingsScreen() {
               <CustomButton title="Entrar"   variant="primary" onPress={handleJoinFamily} loading={syncBusy} style={{ flex: 1 }} />
             </View>
           </View>
+        </View>
+      </Modal>
+
+      {/* Modal: passo a passo do banco de dados */}
+      <Modal visible={dbHelp} transparent animationType="slide" onRequestClose={() => setDbHelp(false)}>
+        <View style={s.modalOverlay}>
+          <ScrollView
+            style={[s.modalSheet, { backgroundColor: colors.surface, maxHeight: '88%' }]}
+            contentContainerStyle={{ padding: spacing.lg }}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={s.modalTitle}>☁️ Banco de dados (sincronização)</Text>
+
+            <View style={{ backgroundColor: colors.success + '18', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md }}>
+              <Text style={{ color: colors.text, fontSize: fontSize.sm, lineHeight: 20 }}>
+                <Text style={{ fontWeight: fontWeight.bold }}>Para o uso normal você NÃO precisa criar nada.</Text>{'\n'}
+                O app já vem conectado a um banco de dados gratuito. Para compartilhar, basta um criar a família (gera um código) e o outro entrar com esse código.
+              </Text>
+            </View>
+
+            <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm, marginBottom: spacing.md, lineHeight: 20 }}>
+              O passo a passo abaixo só é necessário se você quiser ter o seu <Text style={{ fontWeight: fontWeight.bold }}>próprio</Text> banco de dados separado (uso avançado — exige gerar um novo APK com as chaves):
+            </Text>
+
+            {dbSteps.map((step, i) => (
+              <View key={i} style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#fff', fontWeight: fontWeight.bold, fontSize: fontSize.xs }}>{i + 1}</Text>
+                </View>
+                <Text style={{ flex: 1, color: colors.text, fontSize: fontSize.sm, lineHeight: 20 }}>{step}</Text>
+              </View>
+            ))}
+
+            <CustomButton
+              title="Abrir o site do Firebase"
+              variant="primary"
+              icon={<Ionicons name="open-outline" size={18} color="#fff" />}
+              onPress={openFirebaseSite}
+              style={{ marginTop: spacing.md }}
+            />
+            <CustomButton
+              title="Fechar"
+              variant="outline"
+              onPress={() => setDbHelp(false)}
+              style={{ marginTop: spacing.sm }}
+            />
+          </ScrollView>
         </View>
       </Modal>
 
